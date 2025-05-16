@@ -1,24 +1,68 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Search, Bookmark, Clock, ArrowRight, Sparkles } from "lucide-react";
+import {
+  Search,
+  Bookmark,
+  Clock,
+  ArrowRight,
+  Sparkles,
+  FileText,
+} from "lucide-react";
 import { getAuthState } from "@/utils/auth";
+import CaseSummaryCard from "@/components/CaseSummaryCard";
+import { ICaseSummary } from "@/models/CaseSummary";
+import { Types } from "mongoose";
 
 export default function DashboardPage() {
   const router = useRouter();
   const authState = getAuthState();
+  const [summaries, setSummaries] = useState<
+    (ICaseSummary & {
+      _id: Types.ObjectId;
+      author: { name: string; email: string };
+    })[]
+  >([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!authState?.token) {
       router.push("/login");
+      return;
     }
+
+    // Fetch summaries
+    const fetchSummaries = async () => {
+      try {
+        const response = await fetch("/api/summaries", {
+          headers: {
+            Authorization: `Bearer ${authState.token}`,
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setSummaries(data);
+        } else {
+          console.error("Failed to fetch summaries");
+        }
+      } catch (error) {
+        console.error("Failed to fetch summaries:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSummaries();
   }, [authState, router]);
 
   if (!authState?.token) {
     return null;
   }
+
+  const userRole = authState.user?.role;
+  const isLegalUser = userRole === "legal";
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-primary-50 to-white dark:from-gray-900 dark:via-primary-900/20 dark:to-gray-900">
@@ -37,7 +81,9 @@ export default function DashboardPage() {
             {authState.user?.name}
           </h1>
           <p className="text-base md:text-lg text-gray-600 dark:text-gray-300 max-w-xl mx-auto">
-            Access your legal research tools and saved cases
+            {isLegalUser
+              ? "Access your legal research tools and case summaries"
+              : "Explore legal cases and summaries from our community"}
           </p>
         </div>
 
@@ -99,109 +145,100 @@ export default function DashboardPage() {
             </div>
           </Link>
 
-          <Link
-            href="/recent"
-            className="group relative bg-white dark:bg-gray-800 rounded-xl shadow-modern overflow-hidden transform transition-all duration-300 hover:-translate-y-1 glass h-full"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-secondary-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
-            <div className="absolute -right-10 -top-10 w-40 h-40 bg-primary-500/10 rounded-full blur-3xl group-hover:bg-primary-500/20 transition-all duration-500" />
-            <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-secondary-500/10 rounded-full blur-3xl group-hover:bg-secondary-500/20 transition-all duration-500" />
-            <div className="p-6 relative h-full flex flex-col">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center shadow-modern group-hover:scale-110 transition-transform duration-300">
-                  <Clock className="h-6 w-6 text-white" />
+          {isLegalUser ? (
+            <Link
+              href="/dashboard/publish"
+              className="group relative bg-white dark:bg-gray-800 rounded-xl shadow-modern overflow-hidden transform transition-all duration-300 hover:-translate-y-1 glass h-full"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-secondary-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
+              <div className="absolute -right-10 -top-10 w-40 h-40 bg-primary-500/10 rounded-full blur-3xl group-hover:bg-primary-500/20 transition-all duration-500" />
+              <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-secondary-500/10 rounded-full blur-3xl group-hover:bg-secondary-500/20 transition-all duration-500" />
+              <div className="p-6 relative h-full flex flex-col">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center shadow-modern group-hover:scale-110 transition-transform duration-300">
+                    <FileText className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-300">
+                      Publish Summary
+                    </h3>
+                    <p className="mt-0.5 text-sm text-gray-600 dark:text-gray-300">
+                      Share your case analysis
+                    </p>
+                  </div>
                 </div>
-                <div className="ml-4">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-300">
-                    Recent Cases
-                  </h3>
-                  <p className="mt-0.5 text-sm text-gray-600 dark:text-gray-300">
-                    View your recently accessed cases
-                  </p>
+                <div className="mt-auto flex items-center text-primary-600 dark:text-primary-400 group-hover:translate-x-2 transition-transform duration-300">
+                  <span className="font-medium text-sm">Write a summary</span>
+                  <ArrowRight className="ml-1.5 h-4 w-4" />
                 </div>
               </div>
-              <div className="mt-auto flex items-center text-primary-600 dark:text-primary-400 group-hover:translate-x-2 transition-transform duration-300">
-                <span className="font-medium text-sm">View recent cases</span>
-                <ArrowRight className="ml-1.5 h-4 w-4" />
+            </Link>
+          ) : (
+            <Link
+              href="/recent"
+              className="group relative bg-white dark:bg-gray-800 rounded-xl shadow-modern overflow-hidden transform transition-all duration-300 hover:-translate-y-1 glass h-full"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-secondary-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
+              <div className="absolute -right-10 -top-10 w-40 h-40 bg-primary-500/10 rounded-full blur-3xl group-hover:bg-primary-500/20 transition-all duration-500" />
+              <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-secondary-500/10 rounded-full blur-3xl group-hover:bg-secondary-500/20 transition-all duration-500" />
+              <div className="p-6 relative h-full flex flex-col">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center shadow-modern group-hover:scale-110 transition-transform duration-300">
+                    <Clock className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-300">
+                      Recent Cases
+                    </h3>
+                    <p className="mt-0.5 text-sm text-gray-600 dark:text-gray-300">
+                      View your recently accessed cases
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-auto flex items-center text-primary-600 dark:text-primary-400 group-hover:translate-x-2 transition-transform duration-300">
+                  <span className="font-medium text-sm">View recent cases</span>
+                  <ArrowRight className="ml-1.5 h-4 w-4" />
+                </div>
               </div>
-            </div>
-          </Link>
+            </Link>
+          )}
         </div>
 
-        {/* Stats Section */}
+        {/* Case Summaries Section */}
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-4 text-center">
-            Quick Stats
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-6">
+            {isLegalUser ? "Your Published Summaries" : "Recent Case Summaries"}
           </h2>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="group relative bg-white dark:bg-gray-800 rounded-xl shadow-modern overflow-hidden transform transition-all duration-300 hover:-translate-y-1 glass">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-secondary-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
-              <div className="p-5">
-                <div className="text-3xl font-bold text-primary-600 dark:text-primary-400 mb-2">
-                  12
-                </div>
-                <div className="text-base text-gray-600 dark:text-gray-300 mb-4">
-                  Saved Cases
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="h-1 w-12 bg-primary-500 rounded-full"></div>
-                  <div className="h-1 w-8 bg-primary-500/50 rounded-full"></div>
-                  <div className="h-1 w-4 bg-primary-500/30 rounded-full"></div>
-                </div>
-              </div>
-            </div>
 
-            <div className="group relative bg-white dark:bg-gray-800 rounded-xl shadow-modern overflow-hidden transform transition-all duration-300 hover:-translate-y-1 glass">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-secondary-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
-              <div className="p-5">
-                <div className="text-3xl font-bold text-primary-600 dark:text-primary-400 mb-2">
-                  5
+          {loading ? (
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="h-48 bg-gray-200 dark:bg-gray-700 rounded-xl"></div>
                 </div>
-                <div className="text-base text-gray-600 dark:text-gray-300 mb-4">
-                  Recent Searches
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="h-1 w-12 bg-primary-500 rounded-full"></div>
-                  <div className="h-1 w-8 bg-primary-500/50 rounded-full"></div>
-                  <div className="h-1 w-4 bg-primary-500/30 rounded-full"></div>
-                </div>
-              </div>
+              ))}
             </div>
-
-            <div className="group relative bg-white dark:bg-gray-800 rounded-xl shadow-modern overflow-hidden transform transition-all duration-300 hover:-translate-y-1 glass">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-secondary-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
-              <div className="p-5">
-                <div className="text-3xl font-bold text-primary-600 dark:text-primary-400 mb-2">
-                  8
-                </div>
-                <div className="text-base text-gray-600 dark:text-gray-300 mb-4">
-                  Annotations
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="h-1 w-12 bg-primary-500 rounded-full"></div>
-                  <div className="h-1 w-8 bg-primary-500/50 rounded-full"></div>
-                  <div className="h-1 w-4 bg-primary-500/30 rounded-full"></div>
-                </div>
-              </div>
+          ) : summaries.length > 0 ? (
+            <div className="space-y-6">
+              {summaries.map((summary) => (
+                <CaseSummaryCard key={String(summary._id)} summary={summary} />
+              ))}
             </div>
-
-            <div className="group relative bg-white dark:bg-gray-800 rounded-xl shadow-modern overflow-hidden transform transition-all duration-300 hover:-translate-y-1 glass">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-secondary-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
-              <div className="p-5">
-                <div className="text-3xl font-bold text-primary-600 dark:text-primary-400 mb-2">
-                  92%
-                </div>
-                <div className="text-base text-gray-600 dark:text-gray-300 mb-4">
-                  Avg. Match Rate
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="h-1 w-12 bg-primary-500 rounded-full"></div>
-                  <div className="h-1 w-8 bg-primary-500/50 rounded-full"></div>
-                  <div className="h-1 w-4 bg-primary-500/30 rounded-full"></div>
-                </div>
+          ) : (
+            <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow-modern glass">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900/50 mb-4">
+                <FileText className="h-6 w-6 text-primary-600 dark:text-primary-400" />
               </div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                No summaries yet
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                {isLegalUser
+                  ? "Start sharing your case analysis with the community"
+                  : "Legal professionals will share their case analysis here"}
+              </p>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
