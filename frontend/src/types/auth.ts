@@ -2,6 +2,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  role: 'legal' | 'advocate' | 'public';
 }
 
 export interface AuthState {

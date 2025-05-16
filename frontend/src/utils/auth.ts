@@ -1,4 +1,4 @@
-import { AuthState } from '@/types/auth';
+import { AuthState, User } from '@/types/auth';
 
 export interface LoginCredentials {
   email: string;
@@ -60,6 +60,7 @@ export const signup = async (credentials: SignupCredentials): Promise<AuthState>
 
 export const logout = (): void => {
   localStorage.removeItem('authState');
+  window.location.href = '/';
 };
 
 export const getAuthState = (): AuthState | null => {
@@ -77,4 +78,13 @@ export const getAuthState = (): AuthState | null => {
 
 export const isAuthenticated = (): boolean => {
   return getAuthState() !== null;
+};
+
+export const getUserRole = (): User['role'] | null => {
+  const authState = getAuthState();
+  return authState?.user?.role || null;
+};
+
+export const isLegalUser = (): boolean => {
+  return getUserRole() === 'legal';
 }; 
