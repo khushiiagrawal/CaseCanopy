@@ -1,24 +1,30 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   Search as SearchIcon,
   Sparkles,
   Lightbulb,
   Filter,
+  Mic,
+  Upload,
 } from "lucide-react";
 import SearchFilters, {
   SearchFilters as SearchFiltersType,
 } from "@/components/SearchFilters";
 import { getAuthState } from "@/utils/auth";
+import Toast from "@/components/Toast";
+import Loader from "@/components/Loader";
 
 export default function SearchPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchType, setSearchType] = useState<"keyword" | "semantic">(
-    "semantic"
-  );
+  const [searchType, setSearchType] = useState<"keyword" | "semantic">("semantic");
+  const [isRecording, setIsRecording] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
   const [, setFilters] = useState<SearchFiltersType>({
     jurisdiction: "",
     year: "",
@@ -27,25 +33,165 @@ export default function SearchPage() {
     tags: [],
   });
   const [resetFilters, setResetFilters] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const authState = getAuthState();
-    if (!authState?.token) {
-      router.push("/login");
-    }
-  }, [router]);
+    const checkAuth = async () => {
+      const authState = getAuthState();
+      if (!authState?.token) {
+        router.push("/login");
+      } else {
+        setIsAuthenticated(true);
+      }
+    };
+    checkAuth();
+  }, []); // Empty dependency array since we only want to check once on mount
 
-  const handleSearch = (e: React.FormEvent) => {
+  // Don't render the page content until authentication is checked
+  if (!isAuthenticated) {
+    return null; // or a loading spinner
+  }
+
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(
-        `/results?q=${encodeURIComponent(searchQuery)}&type=${searchType}`
-      );
+      try {
+        setIsLoading(true);
+        const response = await fetch('http://localhost:8000/api/submit/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: searchQuery,
+            type: searchType,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to submit search');
+        }
+
+        await response.json();
+        router.push(
+          `/results?q=${encodeURIComponent(searchQuery)}&type=${searchType}`
+        );
+      } catch {
+        setToast({
+          message: 'Error submitting search',
+          type: 'error'
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  const handleVoiceInput = async () => {
+    if (!isRecording) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorderRef.current = mediaRecorder;
+        audioChunksRef.current = [];
+
+        mediaRecorder.ondataavailable = (e) => {
+          audioChunksRef.current.push(e.data);
+        };
+
+        mediaRecorder.onstop = async () => {
+          setIsLoading(true);
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+          const formData = new FormData();
+          formData.append('audio', audioBlob);
+
+          try {
+            const response = await fetch('http://localhost:8000/api/transcribe', {
+              method: 'POST',
+              body: formData,
+            });
+            const data = await response.json();
+            if (data.text) {
+              setSearchQuery(data.text);
+              setToast({
+                message: 'Voice transcribed successfully',
+                type: 'success'
+              });
+            }
+          } catch {
+            setToast({
+              message: 'Error transcribing audio',
+              type: 'error'
+            });
+          } finally {
+            setIsLoading(false);
+          }
+        };
+
+        mediaRecorder.start();
+        setIsRecording(true);
+      } catch {
+        setToast({
+          message: 'Error accessing microphone',
+          type: 'error'
+        });
+      }
+    } else {
+      mediaRecorderRef.current?.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setIsLoading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch('http://localhost:8000/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        setToast({
+          message: 'File uploaded successfully',
+          type: 'success'
+        });
+      } else {
+        setToast({
+          message: data.error || 'Failed to upload file',
+          type: 'error'
+        });
+      }
+    } catch {
+      setToast({
+        message: 'Error uploading file',
+        type: 'error'
+      });
+    } finally {
+      setIsUploading(false);
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-primary-50 to-white dark:from-gray-900 dark:via-primary-900/20 dark:to-gray-900">
+      {isLoading && <Loader />}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
       {/* Background Elements */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary-100 via-white to-white dark:from-primary-900/30 dark:via-gray-900 dark:to-gray-900" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-secondary-50 via-white to-white dark:from-secondary-900/30 dark:via-gray-900 dark:to-gray-900" />
@@ -108,12 +254,43 @@ export default function SearchPage() {
                     className="block w-full pl-10 pr-3 py-3 border border-gray-200 dark:border-gray-700 rounded-lg leading-5 bg-white dark:bg-gray-800 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm transition-all duration-200"
                   />
                 </div>
-                <button
-                  type="submit"
-                  className="ml-3 inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg shadow-modern text-white bg-gradient-primary hover:shadow-modern-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200"
-                >
-                  Search
-                </button>
+                <div className="flex space-x-2 ml-3">
+                  <button
+                    type="button"
+                    onClick={handleVoiceInput}
+                    className={`inline-flex items-center px-4 py-3 border border-transparent text-sm font-medium rounded-lg shadow-modern text-white cursor-pointer ${
+                      isRecording 
+                        ? 'bg-red-500 hover:bg-red-600' 
+                        : 'bg-primary-500 hover:bg-primary-600'
+                    } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200`}
+                    title={isRecording ? "Stop Recording" : "Start Voice Input"}
+                  >
+                    <Mic className="h-5 w-5" />
+                  </button>
+                  <label 
+                    className={`inline-flex items-center px-4 py-3 border border-transparent text-sm font-medium rounded-lg shadow-modern text-white cursor-pointer ${
+                      isUploading 
+                        ? 'bg-gray-500 cursor-not-allowed' 
+                        : 'bg-primary-500 hover:bg-primary-600'
+                    } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200`}
+                    title="Upload File"
+                  >
+                    <Upload className="h-5 w-5" />
+                    <input
+                      type="file"
+                      className="hidden"
+                      onChange={handleFileUpload}
+                      accept=".pdf,.doc,.docx,.txt"
+                      disabled={isUploading}
+                    />
+                  </label>
+                  <button
+                    type="submit"
+                    className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg shadow-modern text-white bg-gradient-primary hover:shadow-modern-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200"
+                  >
+                    Submit
+                  </button>
+                </div>
               </div>
             </form>
           </div>

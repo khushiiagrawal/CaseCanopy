@@ -26,6 +26,7 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
     password: "",
     ...(mode === "signup" && { name: "", confirmPassword: "" }),
   });
+  const [file, setFile] = useState<File | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +41,22 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
         if (signupData.password !== signupData.confirmPassword) {
           throw new Error("Passwords do not match");
         }
-        await signup({ ...signupData, role: selectedRole });
+        if (selectedRole === "legal" && file) {
+          const form = new FormData();
+          form.append("name", signupData.name);
+          form.append("email", signupData.email);
+          form.append("password", signupData.password);
+          form.append("confirmPassword", signupData.confirmPassword);
+          form.append("role", selectedRole);
+          form.append("file", file);
+          const res = await fetch("http://localhost:8000/api/signup-legal", {
+            method: "POST",
+            body: form,
+          });
+          if (!res.ok) throw new Error(await res.text());
+        } else {
+          await signup({ ...signupData, role: selectedRole });
+        }
       }
       router.push("/dashboard");
     } catch (err) {
@@ -240,6 +256,22 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
                       onChange={handleChange}
                     />
                   </div>
+                </div>
+              )}
+
+              {mode === "signup" && selectedRole === "legal" && (
+                <div>
+                  <label htmlFor="file" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Upload PDF or Image
+                  </label>
+                  <input
+                    id="file"
+                    name="file"
+                    type="file"
+                    accept=".pdf,image/*"
+                    onChange={e => setFile(e.target.files?.[0] || null)}
+                    className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600"
+                  />
                 </div>
               )}
 
