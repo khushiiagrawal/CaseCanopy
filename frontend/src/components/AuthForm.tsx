@@ -41,19 +41,28 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
         if (signupData.password !== signupData.confirmPassword) {
           throw new Error("Passwords do not match");
         }
-        if (selectedRole === "legal" && file) {
+        if (selectedRole === "legal") {
+          if (!file) {
+            throw new Error("Please upload a document for verification");
+          }
           const form = new FormData();
           form.append("name", signupData.name);
           form.append("email", signupData.email);
           form.append("password", signupData.password);
-          form.append("confirmPassword", signupData.confirmPassword);
           form.append("role", selectedRole);
           form.append("file", file);
           const res = await fetch("http://localhost:8000/api/signup-legal", {
             method: "POST",
             body: form,
           });
-          if (!res.ok) throw new Error(await res.text());
+          if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(errorText || "Failed to sign up");
+          }
+          const data = await res.json();
+          // Store the response data
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("user", JSON.stringify(data.user));
         } else {
           await signup({ ...signupData, role: selectedRole });
         }
@@ -261,7 +270,10 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
 
               {mode === "signup" && selectedRole === "legal" && (
                 <div>
-                  <label htmlFor="file" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label
+                    htmlFor="file"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                  >
                     Upload PDF or Image
                   </label>
                   <input
@@ -269,7 +281,7 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
                     name="file"
                     type="file"
                     accept=".pdf,image/*"
-                    onChange={e => setFile(e.target.files?.[0] || null)}
+                    onChange={(e) => setFile(e.target.files?.[0] || null)}
                     className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600"
                   />
                 </div>
