@@ -1,6 +1,7 @@
 package services
 
 import (
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -15,5 +16,9 @@ func GenerateToken(userId, email, role string) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte("your-secret-key")) // Use same secret key as in AuthMiddleware
+	secretKey := os.Getenv("JWT_SECRET")
+	if secretKey == "" {
+		secretKey = "your-secret-key" // Fallback for development
+	}
+	return token.SignedString([]byte(secretKey))
 }

@@ -9,7 +9,7 @@ export async function GET(request: Request) {
 
   try {
     // Forward the request to the backend
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/legal`, {
+    const response = await fetch("http://localhost:8000/api/users", {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
@@ -29,7 +29,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const token = request.headers.get('authorization')?.split(' ')[1];
-  const { userId } = await request.json();
+  // const { userId } = await request.json();
 
   if (!token) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
 
   try {
     // Forward the request to the backend
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/legal/${userId}/approve`, {
+    const response = await fetch(`http://localhost:8000/api/users/`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,

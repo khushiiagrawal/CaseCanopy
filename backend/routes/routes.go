@@ -41,9 +41,12 @@ func SetupRouter(db *mongo.Database) *gin.Engine {
 		// User routes
 		api.GET("/users/:id", userController.GetUserDetails)
 		api.GET("/users", userController.GetAllUsers)
+
+		// Admin routes
+		api.POST("/admin/login", adminController.AdminLogin) // Public admin login route
 	}
 
-	// Register admin routes inline to avoid import cycle
+	// Protected admin routes
 	admin := router.Group("/api/admin")
 	admin.Use(middleware.AuthMiddleware())
 	admin.Use(middleware.AdminMiddleware())

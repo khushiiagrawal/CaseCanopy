@@ -86,9 +86,16 @@ func (uc *UserController) SignupLegal(c *gin.Context) {
 		Approve:      false,
 	}
 
-	_, err = uc.UserCollection.InsertOne(context.Background(), user)
+	result, err := uc.UserCollection.InsertOne(context.Background(), user)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "Failed to create user"})
+		return
+	}
+
+	// Generate JWT token
+	token, err := services.GenerateToken(result.InsertedID.(primitive.ObjectID).Hex(), email, role)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to generate token"})
 		return
 	}
 
@@ -98,7 +105,17 @@ func (uc *UserController) SignupLegal(c *gin.Context) {
 		fmt.Printf("Failed to send welcome email: %v\n", err)
 	}
 
-	c.JSON(201, gin.H{"message": "User created successfully. Please wait for admin approval."})
+	c.JSON(201, gin.H{
+		"message": "User created successfully. Please wait for admin approval.",
+		"token": token,
+		"user": gin.H{
+			"id":    result.InsertedID,
+			"name":  name,
+			"email": email,
+			"role":  role,
+			"approve": false,
+		},
+	})
 }
 
 func (uc *UserController) Signin(c *gin.Context) {

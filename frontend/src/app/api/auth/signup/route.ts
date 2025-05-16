@@ -14,6 +14,14 @@ export async function POST(request: Request) {
       );
     }
 
+    // Validate role
+    if (role && !['public', 'legal'].includes(role)) {
+      return NextResponse.json(
+        { error: 'Invalid role specified' },
+        { status: 400 }
+      );
+    }
+
     await connectDB();
 
     // Check if user already exists
@@ -25,12 +33,13 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create new user
+    // Create new user with specified role or default to public
     const user = await User.create({
       name,
       email,
       password,
       role: role || 'public',
+      approve: role === 'legal' ? false : true, // Legal users need approval
     });
 
     const token = generateToken(user);
@@ -41,6 +50,7 @@ export async function POST(request: Request) {
         name: user.name,
         email: user.email,
         role: user.role,
+        approve: user.approve,
       },
       token,
     }, { status: 201 });
