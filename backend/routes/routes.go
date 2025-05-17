@@ -5,6 +5,7 @@ import (
 
 	"casecanopy/backend/controllers"
 	"casecanopy/backend/middleware"
+	"casecanopy/backend/services"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -29,6 +30,12 @@ func SetupRouter(db *mongo.Database) *gin.Engine {
 	fileController := controllers.NewFileController()
 	userController := controllers.NewUserController(db)
 	adminController := controllers.NewAdminController(db)
+
+	// Initialize document parser service
+	documentService := services.NewDocumentParserService("./documents")
+
+	// Setup document routes
+	SetupDocumentRoutes(router, documentService)
 
 	// API routes
 	api := router.Group("/api")
