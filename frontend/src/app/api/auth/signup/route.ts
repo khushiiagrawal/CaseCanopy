@@ -5,9 +5,9 @@ import { generateToken } from '@/utils/jwt';
 
 export async function POST(request: Request) {
   try {
-    const { name, email, password, role } = await request.json();
+    const { name, email, password, role, phone, address } = await request.json();
 
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !phone || !address) {
       return NextResponse.json(
         { error: 'Please provide all required fields' },
         { status: 400 }
@@ -40,6 +40,8 @@ export async function POST(request: Request) {
       password,
       role: role || 'public',
       approve: role === 'legal' ? false : true, // Legal users need approval
+      phone,
+      address,
     });
 
     const token = generateToken(user);
@@ -51,6 +53,8 @@ export async function POST(request: Request) {
         email: user.email,
         role: user.role,
         approve: user.approve,
+        phone: user.phone,
+        address: user.address,
       },
       token,
     }, { status: 201 });

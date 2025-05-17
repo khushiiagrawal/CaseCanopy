@@ -12,4 +12,6 @@ type User struct {
 	Role         string             `bson:"role" json:"role"`
 	DocumentPath string             `bson:"documentPath" json:"documentPath,omitempty"`
 	Approve      bool               `bson:"approve" json:"approve"`
+	Phone        string             `bson:"phone" json:"phone"`
+	Address      string             `bson:"address" json:"address"`
 }

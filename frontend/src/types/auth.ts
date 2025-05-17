@@ -4,6 +4,8 @@ export interface User {
   email: string;
   role: 'legal' | 'public';
   approve: boolean;
+  phone: string;
+  address: string;
 }
 
 export interface AuthState {
@@ -19,4 +21,6 @@ export interface LoginCredentials {
 export interface SignupCredentials extends LoginCredentials {
   name: string;
   confirmPassword: string;
+  phone: string;
+  address: string;
 } 

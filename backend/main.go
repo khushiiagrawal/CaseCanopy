@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"casecanopy/backend/routes"
-	"casecanopy/backend/services"
 
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -24,9 +23,6 @@ func main() {
 	if err := os.MkdirAll("./data", 0755); err != nil {
 		log.Fatalf("Failed to create upload directory: %v", err)
 	}
-
-	// Initialize document parser service
-	documentService := services.NewDocumentParserService("./data")
 
 	// Connect to MongoDB
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -47,9 +43,6 @@ func main() {
 
 	// Setup router with all routes
 	router := routes.SetupRouter(db)
-
-	// Setup document routes
-	routes.SetupDocumentRoutes(router, documentService)
 
 	// Start server
 	if err := router.Run(":8000"); err != nil {
