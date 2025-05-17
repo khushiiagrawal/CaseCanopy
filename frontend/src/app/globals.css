@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #0c4a6e;
+  --background: #000000;
+  --foreground: #ffffff;
   --primary: #0ea5e9;
   --secondary: #14b8a6;
   --accent: #8b5cf6;
@@ -20,7 +20,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0f172a;
+    --background: #000000;
     --foreground: #f8fafc;
     --primary: #38bdf8;
     --secondary: #2dd4bf;
@@ -28,19 +28,20 @@
   }
 }
 
-body {
-  background: var(--background);
+html, body {
+  background-color: #000000;
   color: var(--foreground);
   font-family: var(--font-sans);
+  overscroll-behavior: none;
 }
 
 /* Modern gradient backgrounds */
 .bg-gradient-primary {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  background: linear-gradient(135deg, #D4AF37 0%, #9A7D0A 100%);
 }
 
 .bg-gradient-accent {
-  background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
+  background: linear-gradient(135deg, #D4AF37 0%, #9A7D0A 100%);
 }
 
 /* Smooth transitions */
@@ -72,4 +73,20 @@ body {
 .dark .glass {
   background: rgba(15, 23, 42, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Ensure all scrollable containers have black background */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #333333;
+  border-radius: 20px;
+  border: 3px solid #000000;
 }

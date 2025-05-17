@@ -1,253 +1,133 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import {
-  Search,
-  Bookmark,
-  User,
-  Menu,
-  X,
-  Scale,
-  Sun,
-  Moon,
-  LogOut,
-  ChevronDown,
-} from "lucide-react";
-import { isAuthenticated, logout, getAuthState } from "@/utils/auth";
+import { Scale, LogOut, Menu, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import AuthForm from "@/components/AuthForm";
+import { isAuthenticated, logout } from "@/utils/auth";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const pathname = usePathname();
-  const authenticated = isAuthenticated();
-  const authState = getAuthState();
+  const [showLoginForm, setShowLoginForm] = useState(false);
+  const [showSignupForm, setShowSignupForm] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const router = useRouter();
 
+  // Check authentication status on component mount and when auth state changes
   useEffect(() => {
-    // Check for saved theme preference
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme === "dark") {
-      setIsDarkMode(true);
-      document.documentElement.classList.add("dark");
-    } else {
-      setIsDarkMode(false);
-      document.documentElement.classList.remove("dark");
-    }
+    setIsLoggedIn(isAuthenticated());
+    
+    // Listen for storage events (for when logout happens in another tab)
+    const handleStorageChange = () => {
+      setIsLoggedIn(isAuthenticated());
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
-
-  const toggleDarkMode = () => {
-    setIsDarkMode((prev) => {
-      const newMode = !prev;
-      if (newMode) {
-        document.documentElement.classList.add("dark");
-        localStorage.setItem("theme", "dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-        localStorage.setItem("theme", "light");
-      }
-      return newMode;
-    });
-  };
-
-  const navLinks = [
-    { href: "/search", label: "Search", icon: Search },
-    { href: "/saved", label: "Saved", icon: Bookmark },
-    { href: "/dashboard", label: "Dashboard", icon: User },
-  ];
 
   const handleLogout = () => {
     logout();
-    setIsUserMenuOpen(false);
-    window.location.href = "/";
+    setIsLoggedIn(false);
+    setMobileMenuOpen(false);
   };
 
-  return (
-    <nav className="fixed w-full z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg transition-all duration-300 shadow-modern">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center transform transition-transform duration-300 group-hover:rotate-12 shadow-modern">
-              <Scale className="h-6 w-6 text-white" />
-            </div>
-            <span className="text-xl font-bold text-gray-900 dark:text-white">
-              CaseCanopy
-            </span>
+  // Navbar links
+  const navLinks = (
+    <>
+      <Link href="/" className="navbar-home text-gray-300 text-lg font-medium hover:text-legal-gold transition-colors relative group block py-2 px-2 md:px-0">
+        Home
+      </Link>
+      <Link href="/#features" className="navbar-features text-gray-300 text-lg font-medium hover:text-legal-gold transition-colors relative group block py-2 px-2 md:px-0">
+        Features
+      </Link>
+      {isLoggedIn ? (
+        <>
+          <Link href="/dashboard" className="navbar-dashboard text-gray-300 text-lg font-medium hover:text-legal-gold transition-colors relative group block py-2 px-2 md:px-0">
+            Dashboard
           </Link>
+          <button 
+            onClick={handleLogout} 
+            className="navbar-logout items-center gap-1.5 px-5 py-2 cursor-pointer text-white bg-legal-gold hover:bg-legal-gold/90 rounded-xl font-medium transition-colors relative group overflow-hidden w-full md:w-auto mt-2 md:mt-0"
+          >
+            <LogOut className="h-4 w-4" />
+            Logout
+          </button>
+        </>
+      ) : (
+        <>
+          <button 
+            onClick={() => { setShowLoginForm(true); setMobileMenuOpen(false); }} 
+            className="navbar-login text-gray-300 text-lg cursor-pointer font-medium transition-colors relative group block py-2 px-2 md:px-0 w-full md:w-auto"
+          >
+            Login
+          </button>
+          <button 
+            onClick={() => { setShowSignupForm(true); setMobileMenuOpen(false); }} 
+            className="navbar-signup text-gray-300 text-lg font-medium cursor-pointer transition-colors relative group block py-2 px-2 md:px-0 w-full md:w-auto"
+          >
+            Sign Up
+          </button>
+        </>
+      )}
+    </>
+  );
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-4">
-            {navLinks.map((link) => {
-              const Icon = link.icon;
-              const isActive = pathname === link.href;
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 font-medium text-base  ${
-                    isActive
-                      ? "text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/50"
-                      : "text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/50"
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span>{link.label}</span>
-                </Link>
-              );
-            })}
-
-            {/* Theme Toggle */}
-            <button
-              onClick={toggleDarkMode}
-              className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/50 transition-all duration-200"
-              aria-label="Toggle dark mode"
-              type="button"
-            >
-              {isDarkMode ? (
-                <Sun className="h-5 w-5" />
-              ) : (
-                <Moon className="h-5 w-5" />
-              )}
-            </button>
-
-            {authenticated ? (
-              <div className="relative">
-                <button
-                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/50 transition-all duration-200 font-medium text-base"
-                >
-                  <User className="h-5 w-5" />
-                  <span>{authState?.user?.name}</span>
-                  <ChevronDown
-                    className={`h-4 w-4 transition-transform duration-200 ${
-                      isUserMenuOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-
-                {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 rounded-lg bg-white dark:bg-gray-800 shadow-modern overflow-hidden">
-                    <button
-                      onClick={handleLogout}
-                      className="w-full flex items-center space-x-2 px-4 py-3 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/50 transition-all duration-200 font-medium text-base cursor-pointer"
-                    >
-                      <LogOut className="h-5 w-5" />
-                      <span>Logout</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/50 transition-all duration-200 font-medium text-base"
-                >
-                  <User className="h-5 w-5" />
-                  <span>Login</span>
-                </Link>
-                <Link
-                  href="/signup"
-                  className="flex items-center space-x-2 px-6 py-2 rounded-lg text-white bg-gradient-primary hover:shadow-modern-hover transition-all duration-200 font-semibold text-base ml-2"
-                >
-                  <span>Sign Up</span>
-                </Link>
-              </>
-            )}
+  return (
+    <>
+      <nav className="w-full bg-black/30 backdrop-blur-lg shadow-md py-2 px-4 md:px-8 flex items-center justify-between fixed top-0 gap-4 z-40">
+        <div className="flex items-center gap-3">
+          <div>
+            <Scale className="h-7 w-7 text-legal-gold" />
           </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/50 transition-all duration-200"
-            type="button"
-          >
-            {isMobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
-          </button>
+          <span className="text-white text-xl font-bold tracking-wide select-none">CaseCanopy</span>
         </div>
-      </div>
-
-      {/* Mobile Menu */}
-      <div
-        className={`md:hidden transition-all duration-300 ease-in-out ${
-          isMobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-        } overflow-hidden bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg shadow-modern`}
-      >
-        <div className="px-4 py-2 space-y-1">
-          {navLinks.map((link) => {
-            const Icon = link.icon;
-            const isActive = pathname === link.href;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`flex items-center space-x-2 px-4 py-3 rounded-lg transition-all duration-200 font-medium text-base ${
-                  isActive
-                    ? "text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/50"
-                    : "text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/50"
-                }`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <Icon className="h-5 w-5" />
-                <span>{link.label}</span>
-              </Link>
-            );
-          })}
-
-          {/* Theme Toggle Mobile */}
-          <button
-            onClick={toggleDarkMode}
-            className="w-full flex items-center space-x-2 px-4 py-3 rounded-lg text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/50 transition-all duration-200 font-medium text-base"
-            type="button"
-          >
-            {isDarkMode ? (
-              <>
-                <Sun className="h-5 w-5" />
-                <span>Light Mode</span>
-              </>
-            ) : (
-              <>
-                <Moon className="h-5 w-5" />
-                <span>Dark Mode</span>
-              </>
-            )}
-          </button>
-
-          {authenticated ? (
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center space-x-2 px-4 py-3 rounded-lg text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/50 transition-all duration-200 font-medium text-base cursor-pointer"
-            >
-              <LogOut className="h-5 w-5" />
-              <span>Logout</span>
-            </button>
-          ) : (
-            <>
-              <Link
-                href="/login"
-                className="flex items-center space-x-2 px-4 py-3 rounded-lg text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/50 transition-all duration-200 font-medium text-base"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <User className="h-5 w-5" />
-                <span>Login</span>
-              </Link>
-              <Link
-                href="/signup"
-                className="flex items-center justify-center px-4 py-3 rounded-lg text-white bg-gradient-primary hover:shadow-modern-hover transition-all duration-200 font-semibold text-base"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <span>Sign Up</span>
-              </Link>
-            </>
-          )}
+        {/* Desktop nav */}
+        <div className="hidden md:flex items-center gap-6">{navLinks}</div>
+        {/* Hamburger menu button */}
+        <button
+          className="md:hidden text-gray-300 hover:text-legal-gold focus:outline-none p-2"
+          onClick={() => setMobileMenuOpen((open) => !open)}
+          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+        >
+          {mobileMenuOpen ? <X className="h-7 w-7" /> : <Menu className="h-7 w-7" />}
+        </button>
+      </nav>
+      {/* Mobile menu overlay */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-30 bg-black/80 flex flex-col items-center justify-start pt-20 px-4 md:hidden animate-fade-in">
+          <div className="w-full flex flex-col gap-2 items-center">{navLinks}</div>
         </div>
-      </div>
-    </nav>
+      )}
+      {showLoginForm && (
+        <AuthForm 
+          mode="login" 
+          onClose={() => {
+            setShowLoginForm(false);
+            setIsLoggedIn(isAuthenticated());
+          }} 
+          onSuccess={() => {
+            setShowLoginForm(false);
+            setIsLoggedIn(isAuthenticated());
+            router.push("/dashboard");
+          }}
+        />
+      )}
+      {showSignupForm && (
+        <AuthForm 
+          mode="signup" 
+          onClose={() => {
+            setShowSignupForm(false);
+            setIsLoggedIn(isAuthenticated());
+          }} 
+          onSuccess={() => {
+            setShowSignupForm(false);
+            setIsLoggedIn(isAuthenticated());
+            router.push("/dashboard");
+          }}
+        />
+      )}
+    </>
   );
 }
