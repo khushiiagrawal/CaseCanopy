@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { login, signup } from "@/utils/auth";
 import { LoginCredentials, SignupCredentials } from "@/types/auth";
-import { Scale, Globe, User, Mail, Lock } from "lucide-react";
+import { Scale, Globe, User, Mail, Lock, Phone, MapPin } from "lucide-react";
 
 interface AuthFormProps {
   mode: "login" | "signup";
@@ -24,7 +24,12 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
   >({
     email: "",
     password: "",
-    ...(mode === "signup" && { name: "", confirmPassword: "" }),
+    ...(mode === "signup" && { 
+      name: "", 
+      confirmPassword: "",
+      phone: "",
+      address: ""
+    }),
   });
   const [file, setFile] = useState<File | null>(null);
 
@@ -57,16 +62,30 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
           form.append("email", signupData.email);
           form.append("password", signupData.password);
           form.append("role", selectedRole);
+          form.append("phone", signupData.phone);
+          form.append("address", signupData.address);
           form.append("file", file);
+
+          console.log("Sending form data:", {
+            name: signupData.name,
+            email: signupData.email,
+            role: selectedRole,
+            phone: signupData.phone,
+            address: signupData.address,
+            hasFile: !!file
+          });
+
           const res = await fetch("http://localhost:8000/api/signup-legal", {
             method: "POST",
             body: form,
           });
           if (!res.ok) {
-            const errorText = await res.text();
-            throw new Error(errorText || "Failed to sign up");
+            const errorData = await res.json();
+            console.error("Signup error response:", errorData);
+            throw new Error(errorData.error || "Failed to sign up");
           }
           const data = await res.json();
+          console.log("Signup successful:", data);
           // Store the response data
           localStorage.setItem("token", data.token);
           localStorage.setItem("user", JSON.stringify(data.user));
@@ -200,6 +219,48 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
                         className="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:focus:ring-primary-400 dark:focus:border-primary-400 dark:bg-gray-700 sm:text-sm"
                         placeholder="Full name"
                         value={(formData as SignupCredentials).name}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="phone" className="sr-only">
+                      Phone Number
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Phone className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        required
+                        className="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:focus:ring-primary-400 dark:focus:border-primary-400 dark:bg-gray-700 sm:text-sm"
+                        placeholder="Phone Number"
+                        value={(formData as SignupCredentials).phone}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="address" className="sr-only">
+                      Address
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <MapPin className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        id="address"
+                        name="address"
+                        type="text"
+                        required
+                        className="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:focus:ring-primary-400 dark:focus:border-primary-400 dark:bg-gray-700 sm:text-sm"
+                        placeholder="Address"
+                        value={(formData as SignupCredentials).address}
                         onChange={handleChange}
                       />
                     </div>

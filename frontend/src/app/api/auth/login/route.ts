@@ -49,6 +49,8 @@ export async function POST(request: Request) {
         email: user.email,
         role: user.role,
         approve: user.approve,
+        phone: user.phone,
+        address: user.address,
       },
       token,
     });

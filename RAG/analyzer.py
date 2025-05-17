@@ -33,23 +33,35 @@ latest_response = None
 
 def get_parsed_text():
     try:
-        response = requests.get('http://localhost:8000/api/plain-text')
-        if response.status_code == 200:
-            return response.text.strip()
-        else:
-            return None
+        # Get the text content
+        text_response = requests.get('http://localhost:8000/api/plain-text')
+        if text_response.status_code != 200:
+            return None, {}
+
+        # Get the latest document which includes user details
+        doc_response = requests.get('http://localhost:8000/api/latest-document')
+        if doc_response.status_code != 200:
+            return text_response.text.strip(), {}
+
+        # Extract user details from the document response
+        doc_data = doc_response.json()
+        user_details = doc_data.get('user_details', {})
+        
+        return text_response.text.strip(), user_details
     except Exception as e:
-        return None
+        print(f"Error in get_parsed_text: {str(e)}")
+        return None, {}
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
     global latest_query, latest_response
     data = request.get_json()
     user_query = data.get('query', '')
+    
     if not user_query:
         return jsonify({"error": "No query provided"}), 400
 
-    parsed_text = get_parsed_text()
+    parsed_text, user_details = get_parsed_text()
     if not parsed_text:
         return jsonify({"error": "No parsed document available"}), 404
 
@@ -60,14 +72,15 @@ def analyze():
         return jsonify({
             "status": "success",
             "query": user_query,
-            "langchain_response": response
+            "langchain_response": response,
+            "user_details": user_details
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 @app.route('/analyze', methods=['GET'])
 def get_latest_analysis():
-    parsed_text = get_parsed_text()
+    parsed_text, user_details = get_parsed_text()
     if not parsed_text:
         return jsonify({"error": "No parsed document available"}), 404
     try:
@@ -78,7 +91,8 @@ def get_latest_analysis():
         return jsonify({
             "status": "success",
             "document": document_json,
-            "langchain_response": response
+            "langchain_response": response,
+            "user_details": user_details
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
