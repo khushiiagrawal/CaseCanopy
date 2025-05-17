@@ -127,23 +127,31 @@ def process_backend_data():
         return jsonify({"error": "No query has been saved yet", "status": "error"}), 404
 
     try:
-        response = rag_chain.invoke({
+        # Retrieve both the docs and the formatted context
+        query_info = {
             "question": latest_query,
             "user_id": latest_user_details.get('id', 'default_user')
-        })
-        
+        }
+        docs = vectorstore.similarity_search(query_info["question"])
+        formatted_context = format_docs(docs)
+        response = rag_chain.invoke(query_info)
+
         # Save the interaction
         save_interaction(
             latest_user_details.get('id', 'default_user'),
             latest_query,
             response
         )
-        
+
+        # Prepare retrieved chunks for frontend (raw text)
+        retrieved_chunks = [doc.page_content for doc in docs]
+
         return jsonify({
             "status": "success",
             "saved_query": latest_query,
             "user_details": latest_user_details,
-            "langchain_response": response
+            "langchain_response": response,
+            "retrieved_chunks": retrieved_chunks
         })
     except Exception as e:
         return jsonify({"error": str(e), "status": "error"}), 500
@@ -185,3 +193,4 @@ def get_saved_query():
 
 if __name__ == '__main__':
     app.run(debug=True, port=9000)
+    print(__doc__)

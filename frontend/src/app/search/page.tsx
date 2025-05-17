@@ -115,6 +115,7 @@ export default function SearchPage() {
       if (!processRes.ok) throw new Error('Failed to process query');
 
       setToast({ message: 'LangChain response received!', type: 'success' });
+      router.push('/response');
     } catch {
       setToast({ message: 'Error contacting LangChain backend', type: 'error' });
     } finally {
