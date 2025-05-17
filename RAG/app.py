@@ -45,36 +45,49 @@ def fetch_from_backend():
         response = requests.get('http://localhost:8000/api/plain-text')
         print("Backend status code:", response.status_code)
         print("Backend response text:", response.text)
+        
         if response.status_code == 200:
             # Wrap plain text in a JSON-like dict
             return {"input": response.text.strip()}
+        elif response.status_code == 404:
+            return {"error": "No documents have been parsed yet. Please upload and parse a document first."}
+        else:
+            return {"error": f"Backend service returned status code {response.status_code}"}
+    except Exception as e:
+        print(f"Error fetching from backend: {str(e)}")
+        return {"error": f"Failed to connect to backend service: {str(e)}"}
+
+def get_parsed_text():
+    try:
+        response = requests.get('http://localhost:8000/api/plain-text')
+        if response.status_code == 200:
+            return response.text.strip()
         else:
             return None
     except Exception as e:
-        print(f"Error fetching from backend: {str(e)}")
         return None
 
 @app.route('/api/process-backend', methods=['GET'])
 def process_backend_data():
-    # Fetch data from backend
-    backend_data = fetch_from_backend()
-    if not backend_data:
-        return jsonify({"error": "Failed to fetch data from backend"}), 500
+    global latest_query
+    if not latest_query:
+        return jsonify({"error": "No query has been saved yet", "status": "error"}), 404
 
-    # Get the input from backend response
-    query = backend_data.get('input', '')
-    if not query:
-        return jsonify({"error": "No input found in backend response"}), 400
+    parsed_text = get_parsed_text()
+    if not parsed_text:
+        return jsonify({"error": "No parsed document available", "status": "error"}), 404
 
-    # Process through LangChain
+    # Combine the query and parsed text for LangChain
+    user_input = f"Document:\n{parsed_text}\n\nUser query: {latest_query}"
     try:
-        response = chain.invoke({"user_input": query})
+        response = chain.invoke({"user_input": user_input})
         return jsonify({
-            "original_input": query,
+            "status": "success",
+            "saved_query": latest_query,
             "langchain_response": response
         })
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e), "status": "error"}), 500
 
 @app.route('/api/feed-input', methods=['POST'])
 def feed_input():
