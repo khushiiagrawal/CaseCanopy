@@ -12,8 +12,7 @@ export default function Footer() {
           <div className="space-y-6">
             <h3 className="text-2xl font-bold text-white">CaseCanopy</h3>
             <p className="text-gray-400 leading-relaxed">
-              Empowering marginalized communities with AI-powered legal
-              precedent discovery for environmental justice litigation.
+              Empowering legal professionals and the public with AI-powered legal research and case analysis across all domains of law.
             </p>
             <div className="flex space-x-4">
               <a
