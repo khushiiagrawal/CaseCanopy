@@ -7,6 +7,8 @@ export interface IUser extends mongoose.Document {
   password: string;
   role: 'legal' | 'advocate' | 'public';
   approve: boolean;
+  phone: string;
+  address: string;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -36,6 +38,16 @@ const userSchema = new mongoose.Schema({
   approve: {
     type: Boolean,
     default: true
+  },
+  phone: {
+    type: String,
+    required: [true, 'Please provide a phone number'],
+    trim: true,
+  },
+  address: {
+    type: String,
+    required: [true, 'Please provide an address'],
+    trim: true,
   }
 }, {
   timestamps: true,

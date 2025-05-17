@@ -36,6 +36,11 @@ export default function SearchPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [userDetails, setUserDetails] = useState({
+    name: "",
+    phone: "",
+    address: ""
+  });
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -47,6 +52,20 @@ export default function SearchPage() {
       }
     };
     checkAuth();
+
+    // Fetch user details from localStorage
+    const userStr = localStorage.getItem('authState');
+    if (userStr) {
+      try {
+        const authState = JSON.parse(userStr);
+        const user = authState.user || {};
+        setUserDetails({
+          name: user.name || "",
+          phone: user.phone || "",
+          address: user.address || ""
+        });
+      } catch {}
+    }
   }, []); // Empty dependency array since we only want to check once on mount
 
   useEffect(() => {
@@ -80,11 +99,14 @@ export default function SearchPage() {
 
     setIsLoading(true);
     try {
-      // 1. Save the query
+      // 1. Save the query with user details
       const saveRes = await fetch('http://localhost:9000/api/feed-input', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input: combinedInput }),
+        body: JSON.stringify({ 
+          input: combinedInput,
+          userDetails: userDetails
+        }),
       });
       if (!saveRes.ok) throw new Error('Failed to save query');
 
@@ -93,6 +115,7 @@ export default function SearchPage() {
       if (!processRes.ok) throw new Error('Failed to process query');
 
       setToast({ message: 'LangChain response received!', type: 'success' });
+      router.push('/response');
     } catch {
       setToast({ message: 'Error contacting LangChain backend', type: 'error' });
     } finally {
@@ -163,6 +186,7 @@ export default function SearchPage() {
     setIsLoading(true);
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('userDetails', JSON.stringify(userDetails));
 
     try {
       // Use the simplified endpoint that returns clean text

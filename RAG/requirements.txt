@@ -3,5 +3,9 @@ flask-cors==4.0.0
 python-dotenv==1.0.0
 langchain==0.1.12
 langchain-openai==0.0.8
-langchain-core==0.1.32
-openai>=1.10.0,<2.0.0 
+langchain-core==0.1.52
+openai>=1.10.0,<2.0.0
+langchain-qdrant==0.0.1
+qdrant-client>=1.7.1,<2.0.0
+typing-extensions>=4.5.0
+pydantic>=2.0.0,<3.0.0 

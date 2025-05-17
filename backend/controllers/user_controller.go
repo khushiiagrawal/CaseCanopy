@@ -36,9 +36,16 @@ func (uc *UserController) SignupLegal(c *gin.Context) {
 	email := c.PostForm("email")
 	password := c.PostForm("password")
 	role := c.PostForm("role")
+	phone := c.PostForm("phone")
+	address := c.PostForm("address")
+
+	fmt.Printf("Received signup request - Name: %s, Email: %s, Role: %s, Phone: %s, Address: %s\n",
+		name, email, role, phone, address)
 
 	// Check required fields
-	if name == "" || email == "" || password == "" || role == "" {
+	if name == "" || email == "" || password == "" || role == "" || phone == "" || address == "" {
+		fmt.Printf("Missing required fields - Name: %s, Email: %s, Password: %s, Role: %s, Phone: %s, Address: %s\n",
+			name, email, password, role, phone, address)
 		c.JSON(400, gin.H{"error": "Missing required fields"})
 		return
 	}
@@ -84,6 +91,8 @@ func (uc *UserController) SignupLegal(c *gin.Context) {
 		Role:         role,
 		DocumentPath: documentPath,
 		Approve:      false,
+		Phone:        phone,
+		Address:      address,
 	}
 
 	result, err := uc.UserCollection.InsertOne(context.Background(), user)
@@ -107,13 +116,15 @@ func (uc *UserController) SignupLegal(c *gin.Context) {
 
 	c.JSON(201, gin.H{
 		"message": "User created successfully. Please wait for admin approval.",
-		"token": token,
+		"token":   token,
 		"user": gin.H{
-			"id":    result.InsertedID,
-			"name":  name,
-			"email": email,
-			"role":  role,
+			"id":      result.InsertedID,
+			"name":    name,
+			"email":   email,
+			"role":    role,
 			"approve": false,
+			"phone":   phone,
+			"address": address,
 		},
 	})
 }
@@ -166,6 +177,8 @@ func (uc *UserController) Signin(c *gin.Context) {
 			"email":   user.Email,
 			"role":    user.Role,
 			"approve": user.Approve,
+			"phone":   user.Phone,
+			"address": user.Address,
 		},
 	})
 }
@@ -205,6 +218,8 @@ func (uc *UserController) GetUserDetails(c *gin.Context) {
 		"role":         user.Role,
 		"documentPath": user.DocumentPath,
 		"approve":      user.Approve,
+		"phone":        user.Phone,
+		"address":      user.Address,
 	})
 }
 
@@ -233,6 +248,8 @@ func (uc *UserController) GetAllUsers(c *gin.Context) {
 			"role":         user.Role,
 			"documentPath": user.DocumentPath,
 			"approve":      user.Approve,
+			"phone":        user.Phone,
+			"address":      user.Address,
 		})
 	}
 
