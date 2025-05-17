@@ -53,8 +53,8 @@ export default function AdminDashboard() {
         return;
       }
 
-      console.log("Fetching all users from backend...");
-      const response = await fetch("http://localhost:8000/api/users", {
+      console.log("Fetching legal users from backend...");
+      const response = await fetch("http://localhost:8000/api/admin/users/legal", {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -71,16 +71,12 @@ export default function AdminDashboard() {
       }
 
       const data = await response.json();
-      console.log("Fetched all users:", data);
+      console.log("Fetched legal users:", data);
 
       if (Array.isArray(data)) {
-        // Filter for legal users and sort by name
-        const legalUsers = data
-          .filter((user) => user.role === "legal")
-          .sort((a, b) => a.name.localeCompare(b.name));
-
-        console.log("Filtered legal users:", legalUsers);
-        setUsers(legalUsers);
+        // Sort by name
+        const sortedUsers = data.sort((a, b) => a.name.localeCompare(b.name));
+        setUsers(sortedUsers);
       } else {
         console.error("Expected array of users but got:", data);
         setError("Invalid response format");
@@ -118,17 +114,14 @@ export default function AdminDashboard() {
           setShowSignInModal(true);
           return;
         }
-        throw new Error("Failed to approve user");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to approve user");
       }
 
-      // Update local state
-      setUsers(
-        users.map((user) =>
-          user.email === userEmail ? { ...user, approve: true } : user
-        )
-      );
+      // Refresh the users list to get updated data
+      await fetchLegalUsers();
     } catch (err) {
-      setError("Failed to approve user");
+      setError(err instanceof Error ? err.message : "Failed to approve user");
       console.error(err);
     }
   };
