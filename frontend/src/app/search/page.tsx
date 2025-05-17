@@ -20,7 +20,6 @@ import Loader from "@/components/Loader";
 export default function SearchPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchType, setSearchType] = useState<"keyword" | "semantic">("semantic");
   const [isRecording, setIsRecording] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -66,7 +65,6 @@ export default function SearchPage() {
           },
           body: JSON.stringify({
             query: searchQuery,
-            type: searchType,
           }),
         });
 
@@ -76,7 +74,7 @@ export default function SearchPage() {
 
         await response.json();
         router.push(
-          `/results?q=${encodeURIComponent(searchQuery)}&type=${searchType}`
+          `/results?q=${encodeURIComponent(searchQuery)}`
         );
       } catch {
         setToast({
@@ -202,14 +200,13 @@ export default function SearchPage() {
           <div className="text-center mb-8">
             <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300 mb-3">
               <Sparkles className="h-4 w-4 mr-1.5" />
-              <span className="text-sm font-medium">AI-Powered Search</span>
+              <span className="text-sm font-medium">CaseCanopy Search</span>
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">
-              Search Legal Precedents
+              Discover Legal Precedents
             </h1>
             <p className="text-base text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Find relevant cases using our advanced AI-powered search
-              technology
+              Find relevant cases using our advanced AI-powered search technology
             </p>
           </div>
 
@@ -217,28 +214,12 @@ export default function SearchPage() {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-modern p-6 mb-8 glass">
             <form onSubmit={handleSearch}>
               <div className="flex space-x-3 mb-4">
-                <button
-                  type="button"
-                  onClick={() => setSearchType("semantic")}
-                  className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    searchType === "semantic"
-                      ? "bg-gradient-primary text-white shadow-modern"
-                      : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                  }`}
-                >
-                  Semantic Search
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSearchType("keyword")}
-                  className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    searchType === "keyword"
-                      ? "bg-gradient-primary text-white shadow-modern"
-                      : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                  }`}
-                >
-                  Keyword Search
-                </button>
+                <div className="w-full text-center py-3 px-4 rounded-lg text-sm font-medium bg-gradient-to-r from-emerald-600 via-primary-500 to-indigo-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 via-primary-400/20 to-indigo-400/20 animate-gradient-x"></div>
+
+                  <span className="font-serif tracking-wide relative z-10">Search through the canopy of legal wisdom</span>
+                  <span className="text-2xl ml-2">⚖️</span>
+                </div>
               </div>
 
               <div className="flex">
@@ -250,7 +231,7 @@ export default function SearchPage() {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Enter your search query..."
+                    placeholder="Search for legal cases, precedents, or legal concepts..."
                     className="block w-full pl-10 pr-3 py-3 border border-gray-200 dark:border-gray-700 rounded-lg leading-5 bg-white dark:bg-gray-800 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent sm:text-sm transition-all duration-200"
                   />
                 </div>
@@ -258,21 +239,21 @@ export default function SearchPage() {
                   <button
                     type="button"
                     onClick={handleVoiceInput}
-                    className={`inline-flex items-center px-4 py-3 border border-transparent text-sm font-medium rounded-lg shadow-modern text-white cursor-pointer ${
+                    className={`inline-flex items-center px-4 py-3 border border-transparent text-sm font-medium rounded-lg shadow-modern text-white cursor-pointer transition-all duration-300 hover:scale-110 hover:rotate-3 ${
                       isRecording 
                         ? 'bg-red-500 hover:bg-red-600' 
                         : 'bg-primary-500 hover:bg-primary-600'
-                    } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200`}
+                    } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500`}
                     title={isRecording ? "Stop Recording" : "Start Voice Input"}
                   >
                     <Mic className="h-5 w-5" />
                   </button>
                   <label 
-                    className={`inline-flex items-center px-4 py-3 border border-transparent text-sm font-medium rounded-lg shadow-modern text-white cursor-pointer ${
+                    className={`inline-flex items-center px-4 py-3 border border-transparent text-sm font-medium rounded-lg shadow-modern text-white cursor-pointer transition-all duration-300 hover:scale-110 hover:-rotate-3 ${
                       isUploading 
                         ? 'bg-gray-500 cursor-not-allowed' 
                         : 'bg-primary-500 hover:bg-primary-600'
-                    } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200`}
+                    } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500`}
                     title="Upload File"
                   >
                     <Upload className="h-5 w-5" />
@@ -286,7 +267,7 @@ export default function SearchPage() {
                   </label>
                   <button
                     type="submit"
-                    className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg shadow-modern text-white bg-gradient-primary hover:shadow-modern-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200"
+                    className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg shadow-modern text-white bg-gradient-primary hover:shadow-modern-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 cursor-pointer hover:scale-105"
                   >
                     Submit
                   </button>
@@ -426,6 +407,29 @@ export default function SearchPage() {
         }
         .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
           background-color: rgba(75, 85, 99, 0.7);
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500&display=swap');
+
+        .font-serif {
+          font-family: 'Playfair Display', serif;
+        }
+
+        @keyframes gradient-x {
+          0% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+          100% {
+            background-position: 0% 50%;
+          }
+        }
+
+        .animate-gradient-x {
+          animation: gradient-x 15s ease infinite;
+          background-size: 200% 200%;
         }
       `}</style>
     </div>
