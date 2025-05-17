@@ -37,6 +37,7 @@ func SetupRouter(db *mongo.Database) *gin.Engine {
 		api.POST("/upload", fileController.Upload)
 		api.POST("/transcribe", fileController.Transcribe)
 		api.POST("/signup-legal", userController.SignupLegal)
+		api.POST("/signin", userController.Signin)
 
 		// User routes
 		api.GET("/users/:id", userController.GetUserDetails)

@@ -32,6 +32,14 @@ export async function POST(request: Request) {
       );
     }
 
+    // Check if user is legal and not approved
+    if (user.role === 'legal' && !user.approve) {
+      return NextResponse.json(
+        { error: 'Your account is pending approval. Please wait for admin approval.' },
+        { status: 403 }
+      );
+    }
+
     const token = generateToken(user);
 
     return NextResponse.json({
@@ -40,6 +48,7 @@ export async function POST(request: Request) {
         name: user.name,
         email: user.email,
         role: user.role,
+        approve: user.approve,
       },
       token,
     });
