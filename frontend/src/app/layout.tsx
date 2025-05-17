@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import GuidedTour from "@/components/GuidedTour";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,10 +19,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <div className="min-h-screen flex flex-col">
+    <html lang="en" className="bg-black">
+      <body className={`${inter.className} bg-black text-white`}>
+        <div className="min-h-screen flex flex-col bg-black">
           <Navbar />
+          <GuidedTour />
           <main className="flex-grow">{children}</main>
           <Footer />
         </div>

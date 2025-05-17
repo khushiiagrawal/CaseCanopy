@@ -6,26 +6,27 @@ import Link from "next/link";
 import { login, signup } from "@/utils/auth";
 import { LoginCredentials, SignupCredentials } from "@/types/auth";
 import { Scale, Globe, User, Mail, Lock, Phone, MapPin } from "lucide-react";
+import TermsAndConditionsModal from "./TermsAndConditionsModal";
 
 interface AuthFormProps {
   mode: "login" | "signup";
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
 type UserRole = "legal" | "public";
 
-export default function AuthForm({ mode, onClose }: AuthFormProps) {
+export default function AuthForm({ mode, onClose, onSuccess }: AuthFormProps) {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<UserRole>("legal");
-  const [formData, setFormData] = useState<
-    LoginCredentials | SignupCredentials
-  >({
+  const [selectedRole, setSelectedRole] = useState<UserRole>("public");
+  const [showTerms, setShowTerms] = useState(false);
+  const [formData, setFormData] = useState<LoginCredentials | SignupCredentials>({
     email: "",
     password: "",
-    ...(mode === "signup" && { 
-      name: "", 
+    ...(mode === "signup" && {
+      name: "",
       confirmPassword: "",
       phone: "",
       address: ""
@@ -36,68 +37,73 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
 
+    if (mode === "signup") {
+      setShowTerms(true);
+      return;
+    }
+
+    setLoading(true);
     try {
       if (mode === "login") {
         const authState = await login(formData as LoginCredentials);
-        // Only navigate if login was successful and user is approved (for legal users)
         if (
           authState.user &&
           (authState.user.role !== "legal" || authState.user.approve)
         ) {
           router.push("/dashboard");
+          if (onSuccess) onSuccess();
         }
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTermsAccept = async () => {
+    setShowTerms(false);
+    setLoading(true);
+
+    try {
+      const signupData = formData as SignupCredentials;
+      if (signupData.password !== signupData.confirmPassword) {
+        throw new Error("Passwords do not match");
+      }
+
+      if (selectedRole === "legal") {
+        if (!file) {
+          throw new Error("Please upload a document for verification");
+        }
+        const form = new FormData();
+        form.append("name", signupData.name);
+        form.append("email", signupData.email);
+        form.append("password", signupData.password);
+        form.append("role", selectedRole);
+        form.append("phone", signupData.phone);
+        form.append("address", signupData.address);
+        form.append("file", file);
+
+        const res = await fetch("http://localhost:8000/api/signup-legal", {
+          method: "POST",
+          body: form,
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.error || "Failed to sign up");
+        }
+
+        const data = await res.json();
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        setError("Registration successful! Please wait for admin approval before signing in.");
+        return;
       } else {
-        const signupData = formData as SignupCredentials;
-        if (signupData.password !== signupData.confirmPassword) {
-          throw new Error("Passwords do not match");
-        }
-        if (selectedRole === "legal") {
-          if (!file) {
-            throw new Error("Please upload a document for verification");
-          }
-          const form = new FormData();
-          form.append("name", signupData.name);
-          form.append("email", signupData.email);
-          form.append("password", signupData.password);
-          form.append("role", selectedRole);
-          form.append("phone", signupData.phone);
-          form.append("address", signupData.address);
-          form.append("file", file);
-
-          console.log("Sending form data:", {
-            name: signupData.name,
-            email: signupData.email,
-            role: selectedRole,
-            phone: signupData.phone,
-            address: signupData.address,
-            hasFile: !!file
-          });
-
-          const res = await fetch("http://localhost:8000/api/signup-legal", {
-            method: "POST",
-            body: form,
-          });
-          if (!res.ok) {
-            const errorData = await res.json();
-            console.error("Signup error response:", errorData);
-            throw new Error(errorData.error || "Failed to sign up");
-          }
-          const data = await res.json();
-          console.log("Signup successful:", data);
-          // Store the response data
-          localStorage.setItem("token", data.token);
-          localStorage.setItem("user", JSON.stringify(data.user));
-          // Show success message for legal signup
-          setError(
-            "Registration successful! Please wait for admin approval before signing in."
-          );
-          return;
-        } else {
-          await signup({ ...signupData, role: selectedRole });
-          router.push("/dashboard");
-        }
+        await signup({ ...signupData, role: selectedRole });
+        router.push("/dashboard");
+        if (onSuccess) onSuccess();
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -113,304 +119,229 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
 
   const roles = [
     {
+      id: "public",
+      name: "General Public",
+      icon: Globe,
+      description: "Citizens interested in justice",
+    },
+    {
       id: "legal",
       name: "Legal Professional",
       icon: Scale,
       description: "Lawyers, paralegals, and legal researchers",
     },
-    {
-      id: "public",
-      name: "General Public",
-      icon: Globe,
-      description: "Citizens interested in  justice",
-    },
   ];
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
-      <div className="w-full max-w-md mx-4">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-modern overflow-hidden">
-          <div className="p-6">
-            <div className="flex justify-between items-start mb-6">
-              <div className="text-center flex-1">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {mode === "login"
-                    ? "Sign in to your account"
-                    : "Create your account"}
-                </h2>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                  {mode === "login"
-                    ? "Access your legal research tools"
-                    : "Join our community of justice seekers"}
-                </p>
-              </div>
-              <button
-                onClick={onClose}
-                className="ml-4 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
-                aria-label="Close"
-              >
-                <svg
-                  className="h-5 w-5 text-gray-500 dark:text-gray-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+    <>
+      <div className="fixed inset-0 flex items-center justify-center bg-black/90 backdrop-blur-md z-50">
+        <div className="w-full max-w-md mx-4">
+          <div className="bg-black/80 border border-white/10 rounded-xl shadow-2xl overflow-hidden backdrop-blur-lg">
+            <div className="p-8">
+              <div className="flex justify-between items-start mb-8">
+                <div className="text-center flex-1">
+                  <h2 className="text-3xl font-bold text-white">
+                    {mode === "login"
+                      ? "Sign in to CaseCanopy"
+                      : "Join CaseCanopy"}
+                  </h2>
+                  <p className="mt-2 text-gray-300">
+                    {mode === "login"
+                      ? "Unlock the power of AI-driven legal research"
+                      : "Begin your journey to better legal research"}
+                  </p>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="ml-4 p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors duration-200"
+                  aria-label="Close"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {mode === "signup" && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
-                    {roles.map((role) => (
-                      <button
-                        key={role.id}
-                        type="button"
-                        onClick={() => setSelectedRole(role.id as UserRole)}
-                        className={`relative rounded-lg border p-4 flex flex-col items-center space-y-2 hover:border-primary-500 focus:outline-none transition-colors duration-200 cursor-pointer ${
-                          selectedRole === role.id
-                            ? "border-primary-500 bg-primary-50 dark:bg-primary-900/30"
-                            : "border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800"
-                        }`}
-                      >
-                        <role.icon
-                          className={`h-6 w-6 ${
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {mode === "signup" && (
+                  <>
+                    <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
+                      {roles.map((role) => (
+                        <button
+                          key={role.id}
+                          type="button"
+                          onClick={() => setSelectedRole(role.id as UserRole)}
+                          className={`relative rounded-xl border p-4 flex flex-col items-center space-y-3 focus:outline-none transition-all duration-200 cursor-pointer ${
                             selectedRole === role.id
-                              ? "text-primary-600"
-                              : "text-gray-400 dark:text-gray-500"
-                          }`}
-                        />
-                        <span
-                          className={`text-sm font-medium ${
-                            selectedRole === role.id
-                              ? "text-primary-600"
-                              : "text-gray-900 dark:text-white"
+                              ? "border-legal-gold bg-legal-gold/10"
+                              : "border-white/10 bg-white/5 hover:bg-white/10"
                           }`}
                         >
-                          {role.name}
-                        </span>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                          {role.description}
-                        </p>
-                      </button>
-                    ))}
-                  </div>
-
-                  <div>
-                    <label htmlFor="name" className="sr-only">
-                      Name
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <User className="h-5 w-5 text-gray-400" />
-                      </div>
-                      <input
-                        id="name"
-                        name="name"
-                        type="text"
-                        required
-                        className="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:focus:ring-primary-400 dark:focus:border-primary-400 dark:bg-gray-700 sm:text-sm"
-                        placeholder="Full name"
-                        value={(formData as SignupCredentials).name}
-                        onChange={handleChange}
-                      />
+                          <role.icon
+                            className={`h-6 w-6 ${
+                              selectedRole === role.id
+                                ? "text-legal-gold"
+                                : "text-gray-300"
+                            }`}
+                          />
+                          <span
+                            className={`text-sm font-medium ${
+                              selectedRole === role.id
+                                ? "text-legal-gold"
+                                : "text-white"
+                            }`}
+                          >
+                            {role.name}
+                          </span>
+                          <p className="text-xs text-gray-400 text-center">
+                            {role.description}
+                          </p>
+                        </button>
+                      ))}
                     </div>
-                  </div>
 
-                  <div>
-                    <label htmlFor="phone" className="sr-only">
-                      Phone Number
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Phone className="h-5 w-5 text-gray-400" />
+                    <div>
+                      <label htmlFor="name" className="sr-only">Name</label>
+                      <div className="relative">
+                        <User className="absolute inset-y-0 left-0 pl-3 h-5 w-5 text-gray-400" />
+                        <input
+                          id="name"
+                          name="name"
+                          type="text"
+                          required
+                          placeholder="Full name"
+                          className="appearance-none bg-white/10 relative block w-full px-3 py-3 pl-10 border border-white/10 placeholder-gray-400 text-white rounded-xl focus:outline-none focus:ring-legal-gold/50 focus:border-legal-gold transition-colors duration-200"
+                          value={(formData as SignupCredentials).name}
+                          onChange={handleChange}
+                        />
                       </div>
-                      <input
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        required
-                        className="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:focus:ring-primary-400 dark:focus:border-primary-400 dark:bg-gray-700 sm:text-sm"
-                        placeholder="Phone Number"
-                        value={(formData as SignupCredentials).phone}
-                        onChange={handleChange}
-                      />
                     </div>
-                  </div>
 
-                  <div>
-                    <label htmlFor="address" className="sr-only">
-                      Address
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <MapPin className="h-5 w-5 text-gray-400" />
+                    <div>
+                      <label htmlFor="phone" className="sr-only">Phone Number</label>
+                      <div className="relative">
+                        <Phone className="absolute inset-y-0 left-0 pl-3 h-5 w-5 text-gray-400" />
+                        <input
+                          id="phone"
+                          name="phone"
+                          type="tel"
+                          required
+                          placeholder="Phone Number"
+                          className="appearance-none relative block w-full px-3 py-2 pl-10 border border-white/10 placeholder-gray-400 text-white rounded-xl bg-white/10 focus:outline-none focus:ring-legal-gold/50 focus:border-legal-gold transition-colors duration-200"
+                          value={(formData as SignupCredentials).phone}
+                          onChange={handleChange}
+                        />
                       </div>
-                      <input
-                        id="address"
-                        name="address"
-                        type="text"
-                        required
-                        className="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:focus:ring-primary-400 dark:focus:border-primary-400 dark:bg-gray-700 sm:text-sm"
-                        placeholder="Address"
-                        value={(formData as SignupCredentials).address}
-                        onChange={handleChange}
-                      />
                     </div>
-                  </div>
-                </div>
-              )}
 
-              <div>
-                <label htmlFor="email" className="sr-only">
-                  Email address
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    className="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:focus:ring-primary-400 dark:focus:border-primary-400 dark:bg-gray-700 sm:text-sm"
-                    placeholder="Email address"
-                    value={formData.email}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
+                    <div>
+                      <label htmlFor="address" className="sr-only">Address</label>
+                      <div className="relative">
+                        <MapPin className="absolute inset-y-0 left-0 pl-3 h-5 w-5 text-gray-400" />
+                        <input
+                          id="address"
+                          name="address"
+                          type="text"
+                          required
+                          placeholder="Address"
+                          className="appearance-none relative block w-full px-3 py-2 pl-10 border border-white/10 placeholder-gray-400 text-white rounded-xl bg-white/10 focus:outline-none focus:ring-legal-gold/50 focus:border-legal-gold transition-colors duration-200"
+                          value={(formData as SignupCredentials).address}
+                          onChange={handleChange}
+                        />
+                      </div>
+                    </div>
 
-              <div>
-                <label htmlFor="password" className="sr-only">
-                  Password
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autoComplete={
-                      mode === "login" ? "current-password" : "new-password"
-                    }
-                    required
-                    className="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:focus:ring-primary-400 dark:focus:border-primary-400 dark:bg-gray-700 sm:text-sm"
-                    placeholder="Password"
-                    value={formData.password}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
+                    {selectedRole === "legal" && (
+                      <div>
+                        <label htmlFor="file" className="block text-sm font-medium text-white mb-1">Upload Verification Document</label>
+                        <input
+                          id="file"
+                          name="file"
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          required
+                          className="block w-full text-sm text-gray-300 bg-black/20 rounded-lg border border-white/10 cursor-pointer focus:outline-none"
+                          onChange={(e) => setFile(e.target.files?.[0] || null)}
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
 
-              {mode === "signup" && (
-                <div>
-                  <label htmlFor="confirmPassword" className="sr-only">
-                    Confirm Password
-                  </label>
+                <div className="space-y-4">
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Lock className="h-5 w-5 text-gray-400" />
-                    </div>
+                    <Mail className="absolute inset-y-0 left-0 pl-3 h-5 w-5 text-gray-400" />
                     <input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type="password"
-                      autoComplete="new-password"
+                      type="email"
+                      name="email"
                       required
-                      className="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:focus:ring-primary-400 dark:focus:border-primary-400 dark:bg-gray-700 sm:text-sm"
-                      placeholder="Confirm Password"
-                      value={(formData as SignupCredentials).confirmPassword}
+                      placeholder="Email address"
+                      className="appearance-none relative block w-full px-3 py-3 pl-10 border border-white/10 placeholder-gray-400 text-white rounded-xl bg-white/10 focus:outline-none focus:ring-legal-gold/50 focus:border-legal-gold transition-colors duration-200"
+                      value={formData.email}
                       onChange={handleChange}
                     />
                   </div>
+
+                  <div className="relative">
+                    <Lock className="absolute inset-y-0 left-0 pl-3 h-5 w-5 text-gray-400" />
+                    <input
+                      type="password"
+                      name="password"
+                      required
+                      placeholder="Password"
+                      className="appearance-none relative block w-full px-3 py-3 pl-10 border border-white/10 placeholder-gray-400 text-white rounded-xl bg-white/10 focus:outline-none focus:ring-legal-gold/50 focus:border-legal-gold transition-colors duration-200"
+                      value={formData.password}
+                      onChange={handleChange}
+                    />
+                  </div>
+
+                  {mode === "signup" && (
+                    <div className="relative">
+                      <Lock className="absolute inset-y-0 left-0 pl-3 h-5 w-5 text-gray-400" />
+                      <input
+                        type="password"
+                        name="confirmPassword"
+                        required
+                        placeholder="Confirm Password"
+                        className="appearance-none relative block w-full px-3 py-3 pl-10 border border-white/10 placeholder-gray-400 text-white rounded-xl bg-white/10 focus:outline-none focus:ring-legal-gold/50 focus:border-legal-gold transition-colors duration-200"
+                        value={(formData as SignupCredentials).confirmPassword}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  )}
                 </div>
-              )}
 
-              {mode === "signup" && selectedRole === "legal" && (
-                <div>
-                  <label
-                    htmlFor="file"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                  >
-                    Upload PDF or Image
-                  </label>
-                  <input
-                    id="file"
-                    name="file"
-                    type="file"
-                    accept=".pdf,image/*"
-                    onChange={(e) => setFile(e.target.files?.[0] || null)}
-                    className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600"
-                  />
-                </div>
-              )}
+                {error && <p className="text-sm text-red-400">{error}</p>}
 
-              {error && (
-                <div className="text-red-500 text-sm text-center">{error}</div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-primary hover:shadow-modern-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer "
-              >
-                {loading ? (
-                  <span className="flex items-center">
-                    <svg
-                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    {mode === "login" ? "Signing in..." : "Creating account..."}
-                  </span>
-                ) : mode === "login" ? (
-                  "Sign in"
-                ) : (
-                  "Sign up"
-                )}
-              </button>
+                <button
+                  type="submit"
+                  className="w-full py-3 mt-4 font-semibold rounded-xl bg-legal-gold text-black hover:bg-yellow-500 transition-colors duration-200"
+                  disabled={loading}
+                >
+                  {loading
+                    ? mode === "login"
+                      ? "Signing in..."
+                      : "Signing up..."
+                    : mode === "login"
+                    ? "Sign In"
+                    : "Sign Up"}
+                </button>
+              </form>
 
               {mode === "login" && (
-                <div className="text-sm text-center">
-                  <Link
-                    href="/signup"
-                    className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
-                  >
-                    Don&apos;t have an account? Sign up
+                <p className="mt-4 text-center text-sm text-gray-400">
+                  Don't have an account?{" "}
+                  <Link href="#" className="text-legal-gold hover:underline">
+                    Sign up
                   </Link>
-                </div>
+                </p>
               )}
-            </form>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {showTerms && <TermsAndConditionsModal onAccept={handleTermsAccept} onClose={() => setShowTerms(false)} />}
+    </>
   );
 }
