@@ -2,22 +2,70 @@
 
 import Link from "next/link";
 import { isAuthenticated } from "@/utils/auth";
-import { Scale, Search, Users, ArrowRight, Sparkles, BookOpen, Gavel, FileText } from "lucide-react";
+import { Scale, ArrowRight, BookOpen, Gavel, FileText } from "lucide-react";
 import { motion } from "framer-motion";
-import LegalBackground from "@/components/LegalBackground";
 import AnimatedFeatureCard from "@/components/AnimatedFeatureCard";
+import Image from "next/image";
+import { useState, useRef } from "react";
+import AuthForm from "@/components/AuthForm";
 
 export default function Home() {
   const authenticated = isAuthenticated();
+  const [showLoginForm, setShowLoginForm] = useState(false);
+  const [showSignupForm, setShowSignupForm] = useState(false);
+
+  // Reference for scroll animations
+  const featuresRef = useRef(null);
+  const ctaRef = useRef(null);
+
+  // Text animation variants
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 40 },
+    visible: (i = 0) => ({
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5,
+        delay: i * 0.1,
+        ease: [0.215, 0.61, 0.355, 1]
+      }
+    })
+  };
+
+  // Staggered text animation for paragraphs
+  const paragraphVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+        delayChildren: 0.1
+      }
+    }
+  };
+
+  // Additional animations for different elements
+  const scaleUp = {
+    hidden: { opacity: 0, scale: 0.9 },
+    visible: (i = 0) => ({
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.4,
+        delay: i * 0.1,
+        ease: "easeOut"
+      }
+    })
+  };
 
   const features = [
-    
+
     {
       icon: Scale,
       title: "Outcome Prediction",
       description: "Get AI-powered predictions based on historical case outcomes and legal reasoning patterns.",
     },
-    
+
     {
       icon: BookOpen,
       title: "Legal Library",
@@ -36,81 +84,140 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-legal-navy via-legal-navy/95 to-legal-navy/90">
-      <LegalBackground />
-      
+    <div className="min-h-screen bg-black overflow-hidden">
+
       {/* Hero Section */}
       <div className="relative min-h-screen overflow-hidden">
-        {/* Background Elements */}
-        
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/lady.jpg"
+            alt="Lady Justice"
+            fill
+            priority
+            className="object-cover object-center brightness-75"
+            quality={100}
+          />
+          <div className="absolute inset-0 bg-black/10 backdrop-filter backdrop-blur-xs" />
+        </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-12 flex flex-col min-h-screen justify-between">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-8 flex flex-col min-h-screen justify-between">
           <div className="text-center">
 
-            <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight mb-6 animate-slide-up">
-              <span className="block text-gray-900 dark:text-white">
+            <motion.h1
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false }}
+              transition={{ duration: 0.7, delay: 0.1 }}
+              className="text-3xl sm:text-4xl md:text-6xl font-extrabold tracking-tight mb-6 animate-slide-up"
+            >
+              <span className="block text-white">
                 CaseCanopy
               </span>
-              <span className="block text-primary-600 dark:text-primary-400 mt-2">
-                Justice, Discovered.
-              </span>
-            </h1>
+              <motion.span
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false }}
+                transition={{ duration: 0.7, delay: 0.3 }}
+                className="block text-legal-gold mt-2 text-lg sm:text-2xl md:text-4xl"
+              >
+                Equal Access to Legal Insight
+              </motion.span>
+            </motion.h1>
 
-            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed mb-12 animate-slide-up animation-delay-200">
-              Empowering everyone with AI-powered legal precedent discovery, research, and analysis across all domains of law.
-            </p>
+            <motion.p
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false }}
+              transition={{ duration: 0.7, delay: 0.5 }}
+              className="text-base sm:text-lg md:text-xl text-white max-w-3xl mx-auto leading-relaxed mb-8 sm:mb-12"
+            >
+              Bridging the justice gap — an AI-powered platform that enables cross-jurisdiction legal precedent discovery, multilingual search, and outcome prediction to support equitable litigation for all.
+            </motion.p>
 
-            <div className="flex flex-col sm:flex-row gap-16 justify-center animate-slide-up animation-delay-400 mt-60">
+
+            <motion.div
+              className="flex flex-col sm:flex-row gap-6 sm:gap-8 justify-center mt-16 sm:mt-32 items-center"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false }} 
+
+              transition={{ duration: 0.7, delay: 0.7 }}
+            >
               {authenticated ? (
                 <Link
                   href="/search"
-                  className="group inline-flex items-center justify-center px-8 py-4 text-base font-medium text-white bg-gradient-primary rounded-xl shadow-modern hover:shadow-modern-hover transition-all duration-200 min-w-[160px]"
+                  className="group inline-flex items-center justify-center px-8 py-4 text-base font-medium text-black bg-white/90 backdrop-blur-sm rounded-xl shadow-xl hover:shadow-2xl transition-all duration-200 min-w-[160px] w-full max-w-xs sm:w-auto"
                 >
                   Start Searching
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               ) : (
                 <>
-                  <Link
-                    href="/login"
-                    className="group inline-flex items-center justify-center px-8 py-4 text-base font-medium text-white bg-gradient-primary rounded-xl shadow-modern hover:shadow-modern-hover transition-all duration-200 min-w-[160px]"
+                  <button
+                    onClick={() => setShowLoginForm(true)}
+                    className="group inline-flex items-center justify-center px-8 py-4 text-base font-medium text-black bg-white/90 backdrop-blur-sm rounded-xl shadow-xl hover:shadow-2xl transition-all duration-200 min-w-[160px] w-full max-w-xs sm:w-auto"
                   >
                     Get Started
                     <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                  <Link
-                    href="/signup"
-                    className="group inline-flex items-center justify-center px-8 py-4 text-base font-medium text-primary-600 dark:text-primary-400 bg-white dark:bg-gray-800 rounded-xl shadow-modern hover:shadow-modern-hover transition-all duration-200 min-w-[160px]"
+                  </button>
+
+                  <button
+                    onClick={() => setShowSignupForm(true)}
+                    className="group inline-flex items-center justify-center px-8 py-4 text-base font-medium text-black bg-white/90 backdrop-blur-sm rounded-xl shadow-xl hover:shadow-2xl transition-all duration-200 min-w-[160px] w-full max-w-xs sm:w-auto"
                   >
                     Sign Up
-                  </Link>
+                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  </button>
                 </>
               )}
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
 
+      {/* Auth Modals */}
+      {showLoginForm && (
+        <AuthForm
+          mode="login"
+          onClose={() => setShowLoginForm(false)}
+        />
+      )}
+
+      {showSignupForm && (
+        <AuthForm
+          mode="signup"
+          onClose={() => setShowSignupForm(false)}
+        />
+      )}
+
       {/* Features Section */}
-      <div className="min-h-screen flex flex-col justify-center py-16">
-        <div className="w-full px-10">
+      <div id="features" className="min-h-screen flex flex-col justify-center py-10 sm:py-16 bg-black" ref={featuresRef}>
+        <div className="w-full px-4 sm:px-6 md:px-10">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: false, amount: 0.3 }}
+            variants={paragraphVariants}
+            className="text-center mb-16 sm:mb-24"
           >
-            
-            <h2 className="text-4xl font-bold text-legal-parchment mb-4">
+            <motion.h2
+              variants={fadeInUp}
+              custom={0}
+              className="text-2xl sm:text-4xl md:text-5xl font-bold text-white mb-4 sm:mb-6"
+            >
               Powerful Features for Legal Research
-            </h2>
-            <p className="text-xl text-legal-silver max-w-3xl mx-auto">
+            </motion.h2>
+            <motion.p
+              variants={fadeInUp}
+              custom={1}
+              className="text-base sm:text-lg md:text-xl text-gray-300 max-w-3xl mx-auto"
+            >
               Discover how CaseCanopy revolutionizes legal research with cutting-edge AI technology
-            </p>
+            </motion.p>
           </motion.div>
 
-          <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-2 place-items-center">
+          <div className="grid grid-cols-1 gap-6 sm:gap-10 max-w-6xl mx-auto sm:grid-cols-2 lg:grid-cols-2 place-items-center">
             {features.map((feature, index) => (
               <AnimatedFeatureCard
                 key={feature.title}
@@ -125,30 +232,64 @@ export default function Home() {
       </div>
 
       {/* CTA Section */}
-      <div className="min-h-screen flex flex-col justify-center bg-gradient-to-b from-legal-navy/90 to-legal-navy py-16">
-        <div className="w-full px-4 text-center">
+      <div className="min-h-screen flex flex-col justify-center bg-black py-10 sm:py-16" ref={ctaRef}>
+        <div className="w-full px-4 sm:px-6 text-center">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            viewport={{ once: true }}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: false, amount: 0.2 }}
+            variants={paragraphVariants}
+            className="max-w-4xl mx-auto"
           >
-            <h2 className="text-4xl font-bold text-legal-parchment mb-6">
-              Ready to Transform Your Legal Research?
-            </h2>
-            <p className="text-xl text-legal-silver max-w-3xl mx-auto mb-8">
-              Join our community of legal professionals and advocates working towards accessible justice across all legal domains.
-            </p>
-            <Link
-              href="/signup"
-              className="inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-legal-navy bg-legal-gold rounded-xl shadow-legal hover:shadow-legal-hover transition-all duration-200"
+            <motion.h2
+              variants={fadeInUp}
+              custom={0}
+              className="text-2xl sm:text-4xl md:text-5xl font-bold text-white mb-8 sm:mb-16"
             >
-              Get Started Today
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
+              Ready to Transform Your Legal Research?
+            </motion.h2>
+
+            <motion.div className="space-y-6 sm:space-y-12 mb-8 sm:mb-10">
+              <motion.p
+                variants={fadeInUp}
+                custom={1}
+                className="text-base sm:text-lg md:text-xl text-gray-300 leading-relaxed"
+              >
+                In today&apos;s complex legal landscape, traditional research methods simply don&apos;t cut it anymore. <span className="text-legal-gold">CaseCanopy is the only platform</span> combining advanced AI with comprehensive legal databases to deliver insights no other service can match.
+              </motion.p>
+
+              <motion.p
+                variants={fadeInUp}
+                custom={2}
+                className="text-base sm:text-lg md:text-xl text-gray-300 leading-relaxed"
+              >
+                Whether you&apos;re a seasoned attorney, legal researcher, or advocate for justice, our exclusive technology gives you the competitive edge you need in an increasingly challenging field.
+              </motion.p>
+
+              <motion.p
+                variants={fadeInUp}
+                custom={3}
+                className="text-base sm:text-lg md:text-xl text-gray-300 leading-relaxed"
+              >
+                Don&apos;t settle for outdated tools when the future of legal research is here. <span className="text-white font-semibold">CaseCanopy is the solution you&apos;ve been searching for.</span>
+              </motion.p>
+            </motion.div>
+
+            <motion.button
+              variants={scaleUp}
+              custom={4}
+              onClick={() => setShowSignupForm(true)}
+              className="inline-flex items-center justify-center px-6 sm:px-10 py-4 sm:py-5 text-base sm:text-lg font-medium text-black bg-legal-gold hover:bg-legal-gold/90 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Join the Legal Revolution
+              <ArrowRight className="ml-3 h-6 w-6" />
+            </motion.button>
           </motion.div>
         </div>
       </div>
     </div>
   );
 }
+

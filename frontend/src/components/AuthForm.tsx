@@ -11,15 +11,16 @@ import TermsAndConditionsModal from "./TermsAndConditionsModal";
 interface AuthFormProps {
   mode: "login" | "signup";
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
 type UserRole = "legal" | "public";
 
-export default function AuthForm({ mode, onClose }: AuthFormProps) {
+export default function AuthForm({ mode, onClose, onSuccess }: AuthFormProps) {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<UserRole>("legal");
+  const [selectedRole, setSelectedRole] = useState<UserRole>("public");
   const [showTerms, setShowTerms] = useState(false);
   const [formData, setFormData] = useState<
     LoginCredentials | SignupCredentials
@@ -48,6 +49,7 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
           (authState.user.role !== "legal" || authState.user.approve)
         ) {
           router.push("/dashboard");
+          if (onSuccess) onSuccess();
         }
       }
     } catch (err) {
@@ -94,6 +96,7 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
       } else {
         await signup({ ...signupData, role: selectedRole });
         router.push("/dashboard");
+        if (onSuccess) onSuccess();
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -124,30 +127,30 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
 
   return (
     <>
-      <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
+      <div className="fixed inset-0 flex items-center justify-center bg-black/90 backdrop-blur-md z-50">
         <div className="w-full max-w-md mx-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-modern overflow-hidden">
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-6">
+          <div className="bg-black/80 border border-white/10 rounded-xl shadow-2xl overflow-hidden backdrop-blur-lg">
+            <div className="p-8">
+              <div className="flex justify-between items-start mb-8">
                 <div className="text-center flex-1">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <h2 className="text-3xl font-bold text-white">
                     {mode === "login"
-                      ? "Sign in to your account"
-                      : "Create your account"}
+                      ? "Sign in to CaseCanopy"
+                      : "Join CaseCanopy"}
                   </h2>
-                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                  <p className="mt-2 text-gray-300">
                     {mode === "login"
-                      ? "Access your legal research tools"
-                      : "Join our community of justice seekers"}
+                      ? "Unlock the power of AI-driven legal research"
+                      : "Begin your journey to better legal research"}
                   </p>
                 </div>
                 <button
                   onClick={onClose}
-                  className="ml-4 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+                  className="ml-4 p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors duration-200"
                   aria-label="Close"
                 >
                   <svg
-                    className="h-5 w-5 text-gray-500 dark:text-gray-400"
+                    className="h-5 w-5"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -162,38 +165,38 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-5">
                 {mode === "signup" && (
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
                       {roles.map((role) => (
                         <button
                           key={role.id}
                           type="button"
                           onClick={() => setSelectedRole(role.id as UserRole)}
-                          className={`relative rounded-lg border p-4 flex flex-col items-center space-y-2 hover:border-primary-500 focus:outline-none transition-colors duration-200 cursor-pointer ${
+                          className={`relative rounded-xl border p-4 flex flex-col items-center space-y-3 focus:outline-none transition-all duration-200 cursor-pointer ${
                             selectedRole === role.id
-                              ? "border-primary-500 bg-primary-50 dark:bg-primary-900/30"
-                              : "border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800"
+                              ? "border-legal-gold bg-legal-gold/10"
+                              : "border-white/10 bg-white/5 hover:bg-white/10"
                           }`}
                         >
                           <role.icon
                             className={`h-6 w-6 ${
                               selectedRole === role.id
-                                ? "text-primary-600"
-                                : "text-gray-400 dark:text-gray-500"
+                                ? "text-legal-gold"
+                                : "text-gray-300"
                             }`}
                           />
                           <span
                             className={`text-sm font-medium ${
                               selectedRole === role.id
-                                ? "text-primary-600"
-                                : "text-gray-900 dark:text-white"
+                                ? "text-legal-gold"
+                                : "text-white"
                             }`}
                           >
                             {role.name}
                           </span>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                          <p className="text-xs text-gray-400 text-center">
                             {role.description}
                           </p>
                         </button>
@@ -213,7 +216,7 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
                           name="name"
                           type="text"
                           required
-                          className="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:focus:ring-primary-400 dark:focus:border-primary-400 dark:bg-gray-700 sm:text-sm"
+                          className="appearance-none bg-white/10 relative block w-full px-3 py-3 pl-10 border border-white/10 placeholder-gray-400 text-white rounded-xl focus:outline-none focus:ring-legal-gold/50 focus:border-legal-gold transition-colors duration-200"
                           placeholder="Full name"
                           value={(formData as SignupCredentials).name}
                           onChange={handleChange}
@@ -237,7 +240,7 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
                       type="email"
                       autoComplete="email"
                       required
-                      className="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:focus:ring-primary-400 dark:focus:border-primary-400 dark:bg-gray-700 sm:text-sm"
+                      className="appearance-none bg-white/10 relative block w-full px-3 py-3 pl-10 border border-white/10 placeholder-gray-400 text-white rounded-xl focus:outline-none focus:ring-legal-gold/50 focus:border-legal-gold transition-colors duration-200"
                       placeholder="Email address"
                       value={formData.email}
                       onChange={handleChange}
@@ -261,7 +264,7 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
                         mode === "login" ? "current-password" : "new-password"
                       }
                       required
-                      className="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:focus:ring-primary-400 dark:focus:border-primary-400 dark:bg-gray-700 sm:text-sm"
+                      className="appearance-none bg-white/10 relative block w-full px-3 py-3 pl-10 border border-white/10 placeholder-gray-400 text-white rounded-xl focus:outline-none focus:ring-legal-gold/50 focus:border-legal-gold transition-colors duration-200"
                       placeholder="Password"
                       value={formData.password}
                       onChange={handleChange}
@@ -284,7 +287,7 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
                         type="password"
                         autoComplete="new-password"
                         required
-                        className="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:focus:ring-primary-400 dark:focus:border-primary-400 dark:bg-gray-700 sm:text-sm"
+                        className="appearance-none bg-white/10 relative block w-full px-3 py-3 pl-10 border border-white/10 placeholder-gray-400 text-white rounded-xl focus:outline-none focus:ring-legal-gold/50 focus:border-legal-gold transition-colors duration-200"
                         placeholder="Confirm Password"
                         value={(formData as SignupCredentials).confirmPassword}
                         onChange={handleChange}
@@ -297,9 +300,9 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
                   <div>
                     <label
                       htmlFor="file"
-                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                      className="block text-sm font-medium text-gray-300 mb-2"
                     >
-                      Upload PDF or Image
+                      Upload Verification Document
                     </label>
                     <input
                       id="file"
@@ -307,16 +310,16 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
                       type="file"
                       accept=".pdf,image/*"
                       onChange={(e) => setFile(e.target.files?.[0] || null)}
-                      className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600"
+                      className="block w-full text-sm text-gray-300 border border-white/10 rounded-xl cursor-pointer bg-white/5 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-legal-gold/80 file:text-black hover:file:bg-legal-gold transition-colors"
                     />
                   </div>
                 )}
 
                 {error && (
-                  <div className={`text-sm text-center ${
+                  <div className={`text-sm text-center p-3 rounded-lg ${
                     error.includes("Registration successful") 
-                      ? "text-yellow-500" 
-                      : "text-red-500"
+                      ? "bg-legal-gold/10 text-legal-gold" 
+                      : "bg-red-500/10 text-red-400"
                   }`}>
                     {error}
                   </div>
@@ -325,12 +328,12 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-primary hover:shadow-modern-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer "
+                  className="w-full flex justify-center py-3 px-4 text-base font-medium rounded-xl text-black bg-white hover:bg-legal-gold/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-legal-gold focus:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer"
                 >
                   {loading ? (
                     <span className="flex items-center">
                       <svg
-                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        className="animate-spin -ml-1 mr-2 h-5 w-5 text-black"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"
@@ -354,18 +357,39 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
                   ) : mode === "login" ? (
                     "Sign in"
                   ) : (
-                    "Sign up"
+                    "Create Account"
                   )}
                 </button>
 
-                {mode === "login" && (
-                  <div className="text-sm text-center">
-                    <Link
-                      href="/signup"
-                      className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
-                    >
-                      Don&apos;t have an account? Sign up
-                    </Link>
+                {mode === "login" ? (
+                  <div className="text-center space-y-3">
+                    <div className="text-sm text-gray-400">
+                      Don&apos;t have an account?{" "}
+                      <Link
+                        href="/signup"
+                        className="font-medium text-legal-gold hover:text-legal-gold/80"
+                      >
+                        Sign up now
+                      </Link>
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      By signing in, you agree to our{" "}
+                      <a href="#" className="text-legal-gold/80 hover:text-legal-gold">Terms of Service</a>
+                      {" "}and{" "}
+                      <a href="#" className="text-legal-gold/80 hover:text-legal-gold">Privacy Policy</a>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <div className="text-sm text-gray-400">
+                      Already have an account?{" "}
+                      <Link
+                        href="/login"
+                        className="font-medium text-legal-gold hover:text-legal-gold/80"
+                      >
+                        Sign in
+                      </Link>
+                    </div>
                   </div>
                 )}
               </form>
