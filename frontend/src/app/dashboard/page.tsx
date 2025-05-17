@@ -18,7 +18,6 @@ import { Types } from "mongoose";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const authState = getAuthState();
   const [summaries, setSummaries] = useState<
     (ICaseSummary & {
       _id: Types.ObjectId;
@@ -26,9 +25,13 @@ export default function DashboardPage() {
     })[]
   >([]);
   const [loading, setLoading] = useState(true);
+  const [authState, setAuthState] = useState<ReturnType<typeof getAuthState> | null>(null);
 
   useEffect(() => {
-    if (!authState?.token) {
+    const currentAuthState = getAuthState();
+    setAuthState(currentAuthState);
+
+    if (!currentAuthState?.token) {
       router.push("/login");
       return;
     }
@@ -38,7 +41,7 @@ export default function DashboardPage() {
       try {
         const response = await fetch("/api/summaries", {
           headers: {
-            Authorization: `Bearer ${authState.token}`,
+            Authorization: `Bearer ${currentAuthState.token}`,
           },
         });
         if (response.ok) {
@@ -55,7 +58,7 @@ export default function DashboardPage() {
     };
 
     fetchSummaries();
-  }, [authState, router]);
+  }, [router]);
 
   if (!authState?.token) {
     return null;
