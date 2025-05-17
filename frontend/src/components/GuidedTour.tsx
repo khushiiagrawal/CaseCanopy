@@ -13,7 +13,8 @@ export default function GuidedTour() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && !localStorage.getItem("guidedTourDone")) {
+    // Always show the tour for testing
+    if (typeof window !== "undefined") {
       setShow(true);
     }
   }, []);
@@ -21,6 +22,7 @@ export default function GuidedTour() {
   useEffect(() => {
     if (!show) return;
     const el = document.querySelector(steps[0]?.selector);
+    console.log('GuidedTour: .navbar-signup element:', el);
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "center" });
     }
@@ -104,7 +106,7 @@ export default function GuidedTour() {
       }}>
         <div style={{ fontSize: 18, marginBottom: 12 }}>{steps[0].content}</div>
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-          <button onClick={() => { setShow(false); localStorage.setItem("guidedTourDone", "1"); }} style={{ padding: "6px 16px", borderRadius: 4, background: "#D4AF37", color: "#000", border: "none", cursor: "pointer", fontWeight: 600 }}>Got it!</button>
+          <button onClick={() => { setShow(false); }} style={{ padding: "6px 16px", borderRadius: 4, background: "#D4AF37", color: "#000", border: "none", cursor: "pointer", fontWeight: 600 }}>Got it!</button>
         </div>
       </div>
     </div>
