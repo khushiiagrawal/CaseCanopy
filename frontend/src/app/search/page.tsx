@@ -186,7 +186,6 @@ export default function SearchPage() {
     setIsLoading(true);
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('userDetails', JSON.stringify(userDetails));
 
     try {
       // Use the simplified endpoint that returns clean text
