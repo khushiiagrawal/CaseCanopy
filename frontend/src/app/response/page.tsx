@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Loader2 } from 'lucide-react';
+import { Loader2, FileText, Download } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 interface ResponseData {
@@ -15,6 +15,9 @@ interface ResponseData {
 export default function ResponsePage() {
   const [response, setResponse] = useState<ResponseData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchResponse = async () => {
@@ -30,7 +33,77 @@ export default function ResponsePage() {
     };
 
     fetchResponse();
+
+    // Cleanup function to revoke object URLs on unmount
+    return () => {
+      if (pdfUrl) {
+        URL.revokeObjectURL(pdfUrl);
+      }
+    };
   }, []);
+
+  const handleGeneratePetition = async () => {
+    setPdfLoading(true);
+    setPdfError(null);
+    
+    if (pdfUrl) {
+      URL.revokeObjectURL(pdfUrl);
+      setPdfUrl(null);
+    }
+    
+    try {
+      // Configure fetch to handle binary data (PDF)
+      const response = await fetch('http://localhost:8001/generate_from_backend', {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/pdf',
+        },
+      });
+      
+      if (!response.ok) {
+        let errorMessage = `Error: ${response.status} ${response.statusText}`;
+        try {
+          // Try to parse error message from JSON response
+          const errorData = await response.json();
+          errorMessage = errorData.detail || errorMessage;
+        } catch {
+          // If not JSON, try to get text
+          try {
+            const textError = await response.text();
+            if (textError) errorMessage = textError;
+          } catch {
+            // Fallback to default error message
+          }
+        }
+        throw new Error(errorMessage);
+      }
+      
+      // Create a blob URL from the PDF response for display
+      const blob = await response.blob();
+      if (blob.type !== 'application/pdf') {
+        console.warn('Unexpected response type:', blob.type);
+      }
+      
+      const url = URL.createObjectURL(blob);
+      setPdfUrl(url);
+    } catch (error) {
+      console.error('Error generating petition:', error);
+      setPdfError(error instanceof Error ? error.message : 'Failed to generate petition');
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
+  const handleDownloadPdf = () => {
+    if (!pdfUrl) return;
+    
+    const link = document.createElement('a');
+    link.href = pdfUrl;
+    link.download = 'legal_petition.pdf';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   if (loading) {
     return (
@@ -70,7 +143,27 @@ export default function ResponsePage() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="bg-gray-900 rounded-2xl shadow-xl p-8"
         >
-          <h2 className="text-2xl font-bold text-white mb-4 text-center">Legal Analysis</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold text-white text-center">Legal Analysis</h2>
+            <button
+              onClick={handleGeneratePetition}
+              disabled={pdfLoading}
+              className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50"
+            >
+              {pdfLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Generating...</span>
+                </>
+              ) : (
+                <>
+                  <FileText className="w-4 h-4" />
+                  <span>Fill Petition</span>
+                </>
+              )}
+            </button>
+          </div>
+          
           <div className="text-white bg-gray-800 p-4 rounded-lg">
             <ReactMarkdown
               components={{
@@ -95,6 +188,68 @@ export default function ResponsePage() {
             </ReactMarkdown>
           </div>
         </motion.div>
+
+        {/* PDF Loading State */}
+        {pdfLoading && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="bg-gray-900 rounded-2xl shadow-xl p-8 mt-8 flex flex-col items-center"
+          >
+            <Loader2 className="w-8 h-8 animate-spin text-white" />
+            <p className="text-lg text-white mt-4">Generating petition document...</p>
+          </motion.div>
+        )}
+        
+        {/* PDF Error State */}
+        {pdfError && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="bg-gray-900 rounded-2xl shadow-xl p-8 mt-8"
+          >
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-red-400 mb-4">Error Generating Petition</h2>
+              <p className="text-white">{pdfError}</p>
+              <button 
+                onClick={handleGeneratePetition} 
+                className="mt-4 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg"
+              >
+                Try Again
+              </button>
+            </div>
+          </motion.div>
+        )}
+        
+        {/* PDF Viewer */}
+        {pdfUrl && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="bg-gray-900 rounded-2xl shadow-xl p-8 mt-8"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-white">Generated Petition</h2>
+              <button
+                onClick={handleDownloadPdf}
+                className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg flex items-center gap-2"
+              >
+                <Download className="w-4 h-4" />
+                <span>Download</span>
+              </button>
+            </div>
+            <div className="bg-white p-2 rounded-lg overflow-hidden shadow-lg">
+              <iframe 
+                src={pdfUrl} 
+                className="w-full h-[600px] rounded"
+                title="Generated Petition Document"
+              />
+            </div>
+          </motion.div>
+        )}
 
         {/* Retrieved Chunks Section */}
         {response.retrieved_chunks && response.retrieved_chunks.length > 0 && (
