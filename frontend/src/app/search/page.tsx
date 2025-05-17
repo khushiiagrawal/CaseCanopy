@@ -16,6 +16,7 @@ import SearchFilters, {
 import { getAuthState } from "@/utils/auth";
 import Toast from "@/components/Toast";
 import Loader from "@/components/Loader";
+import React from "react";
 
 export default function SearchPage() {
   const router = useRouter();
@@ -47,6 +48,15 @@ export default function SearchPage() {
     };
     checkAuth();
   }, []); // Empty dependency array since we only want to check once on mount
+
+  useEffect(() => {
+    const stored = localStorage.getItem('parsedDocument');
+    if (stored) {
+      try {
+        // setParsedDoc(JSON.parse(stored));
+      } catch {}
+    }
+  }, []);
 
   // Don't render the page content until authentication is checked
   if (!isAuthenticated) {
@@ -152,26 +162,36 @@ export default function SearchPage() {
     formData.append('file', file);
 
     try {
-      const response = await fetch('http://localhost:8000/api/upload', {
+      // Use the simplified endpoint that returns clean text
+      const response = await fetch('http://localhost:8000/api/parse-document-simple', {
         method: 'POST',
         body: formData,
       });
       const data = await response.json();
       
       if (response.ok) {
+        // Format the data to match our frontend structure
+        const formattedData = {
+          text: data.document?.text || "",
+          pages: data.document?.pages || 0,
+          metadata: data.document?.metadata || {} // No metadata in the simple version
+        };
+        // Store the parsed document data
+        localStorage.setItem('parsedDocument', JSON.stringify(formattedData));
         setToast({
-          message: 'File uploaded successfully',
+          message: 'Document parsed successfully',
           type: 'success'
         });
       } else {
         setToast({
-          message: data.error || 'Failed to upload file',
+          message: data.error || 'Failed to parse document',
           type: 'error'
         });
       }
-    } catch {
+    } catch (error) {
+      console.error('Error parsing document:', error);
       setToast({
-        message: 'Error uploading file',
+        message: 'Error parsing document',
         type: 'error'
       });
     } finally {
@@ -274,6 +294,31 @@ export default function SearchPage() {
                 </div>
               </div>
             </form>
+            {/* Parsed Document Preview */}
+            {/* {parsedDoc && (
+              <div className="mt-8 p-6 rounded-lg bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700 shadow">
+                <h3 className="text-lg font-semibold mb-2 text-primary-700 dark:text-primary-200">Parsed Document Result</h3>
+                <div className="mb-2 text-xs text-gray-500 dark:text-gray-400">Pages: <span className="font-bold">{parsedDoc.pages}</span></div>
+                <div className="mb-2 text-xs text-gray-500 dark:text-gray-400">Metadata:</div>
+                <ul className="mb-4 text-xs text-gray-700 dark:text-gray-200">
+                  {Object.entries(parsedDoc.metadata).length === 0 && <li className="italic">No metadata found</li>}
+                  {Object.entries(parsedDoc.metadata).map(([k, v]) => (
+                    <li key={k}><span className="font-semibold">{k}:</span> {v}</li>
+                  ))}
+                </ul>
+                <div className="mb-2 text-xs text-gray-500 dark:text-gray-400">Extracted Text (first 1000 chars):</div>
+                <div className="whitespace-pre-wrap text-sm bg-white dark:bg-gray-800 p-3 rounded max-h-64 overflow-auto border border-gray-200 dark:border-gray-700">
+                  {parsedDoc.text ? (
+                    <>
+                      {parsedDoc.text.slice(0, 1000)}
+                      {parsedDoc.text.length > 1000 && <span className="text-gray-400">... (truncated)</span>}
+                    </>
+                  ) : (
+                    <span className="italic text-gray-400">No text content available</span>
+                  )}
+                </div>
+              </div>
+            )} */}
           </div>
 
           {/* Tips and Filters Section */}
