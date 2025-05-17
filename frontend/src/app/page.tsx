@@ -87,7 +87,7 @@ export default function Home() {
     <div className="min-h-screen bg-black overflow-hidden">
 
       {/* Hero Section */}
-      <div className="relative min-h-screen overflow-hidden">
+      <div className="relative min-h-screen overflow-hidden flex flex-col justify-center">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <Image
@@ -101,8 +101,8 @@ export default function Home() {
           <div className="absolute inset-0 bg-black/10 backdrop-filter backdrop-blur-xs" />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-8 flex flex-col min-h-screen justify-between">
-          <div className="text-center">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-16 flex flex-col min-h-[80vh] justify-center">
+          <div className="text-center flex flex-col items-center">
 
             <motion.h1
               initial={{ opacity: 0, y: 40 }}
@@ -125,23 +125,30 @@ export default function Home() {
               </motion.span>
             </motion.h1>
 
+            {/* Animated gold accent underline */}
+            <motion.div
+              initial={{ scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={{ once: false }}
+              transition={{ duration: 0.7, delay: 0.5 }}
+              className="mx-auto mb-6 origin-left h-1 w-24 sm:w-32 bg-gradient-to-r from-legal-gold to-yellow-400 rounded-full"
+            />
+
             <motion.p
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: false }}
               transition={{ duration: 0.7, delay: 0.5 }}
-              className="text-base sm:text-lg md:text-xl text-white max-w-3xl mx-auto leading-relaxed mb-8 sm:mb-12"
+              className="text-base sm:text-lg md:text-xl text-white max-w-3xl mx-auto leading-relaxed mb-10 sm:mb-14"
             >
-              Bridging the justice gap — an AI-powered platform that enables cross-jurisdiction legal precedent discovery, multilingual search, and outcome prediction to support equitable litigation for all.
+              Bridging the justice gap — an AI-powered platform that enables cross-jurisdiction legal precedent discovery and outcome prediction to support equitable litigation for all.
             </motion.p>
 
-
             <motion.div
-              className="flex flex-col sm:flex-row gap-6 sm:gap-8 justify-center mt-16 sm:mt-32 items-center"
+              className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center mb-8"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: false }} 
-
+              viewport={{ once: false }}
               transition={{ duration: 0.7, delay: 0.7 }}
             >
               {authenticated ? (
@@ -162,6 +169,8 @@ export default function Home() {
                     <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                   </button>
 
+                  <span className="hidden sm:inline-block text-gray-400 font-medium px-2">or</span>
+
                   <button
                     onClick={() => setShowSignupForm(true)}
                     className="group inline-flex items-center justify-center px-8 py-4 text-base font-medium text-black bg-white/90 backdrop-blur-sm rounded-xl shadow-xl hover:shadow-2xl transition-all duration-200 min-w-[160px] w-full max-w-xs sm:w-auto"
@@ -172,6 +181,20 @@ export default function Home() {
                 </>
               )}
             </motion.div>
+
+            {/* Scroll down chevron */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false }}
+              transition={{ duration: 0.7, delay: 1.2 }}
+              className="flex justify-center mt-4"
+            >
+              <span className="animate-bounce text-legal-gold text-3xl cursor-pointer" onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>
+                &#8595;
+              </span>
+            </motion.div>
+
           </div>
         </div>
       </div>

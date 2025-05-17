@@ -135,9 +135,9 @@ export default function AuthForm({ mode, onClose, onSuccess }: AuthFormProps) {
   return (
     <>
       <div className="fixed inset-0 flex items-center justify-center bg-black/90 backdrop-blur-md z-50">
-        <div className="w-full max-w-md mx-4">
-          <div className="bg-black/80 border border-white/10 rounded-xl shadow-2xl overflow-hidden backdrop-blur-lg">
-            <div className="p-8">
+        <div className="w-full max-w-md mx-2 sm:mx-4">
+          <div className="bg-black/80 border border-white/10 rounded-xl shadow-2xl overflow-hidden backdrop-blur-lg max-h-[90vh] flex flex-col">
+            <div className="p-4 sm:p-8 overflow-y-auto flex-1">
               <div className="flex justify-between items-start mb-8">
                 <div className="text-center flex-1">
                   <h2 className="text-3xl font-bold text-white">
@@ -162,16 +162,16 @@ export default function AuthForm({ mode, onClose, onSuccess }: AuthFormProps) {
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleSubmit} className="flex flex-col gap-5">
                 {mode === "signup" && (
                   <>
-                    <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-md mx-auto">
                       {roles.map((role) => (
                         <button
                           key={role.id}
                           type="button"
                           onClick={() => setSelectedRole(role.id as UserRole)}
-                          className={`relative rounded-xl border p-4 flex flex-col items-center space-y-3 focus:outline-none transition-all duration-200 cursor-pointer ${
+                          className={`relative rounded-xl border p-4 flex flex-col items-center space-y-3 focus:outline-none transition-all duration-200 cursor-pointer w-full text-center ${
                             selectedRole === role.id
                               ? "border-legal-gold bg-legal-gold/10"
                               : "border-white/10 bg-white/5 hover:bg-white/10"
@@ -200,110 +200,89 @@ export default function AuthForm({ mode, onClose, onSuccess }: AuthFormProps) {
                       ))}
                     </div>
 
-                    <div>
+                    <div className="relative flex flex-col">
                       <label htmlFor="name" className="sr-only">Name</label>
-                      <div className="relative">
-                        <User className="absolute inset-y-0 left-0 pl-3 h-5 w-5 text-gray-400" />
-                        <input
-                          id="name"
-                          name="name"
-                          type="text"
-                          required
-                          placeholder="Full name"
-                          className="appearance-none bg-white/10 relative block w-full px-3 py-3 pl-10 border border-white/10 placeholder-gray-400 text-white rounded-xl focus:outline-none focus:ring-legal-gold/50 focus:border-legal-gold transition-colors duration-200"
-                          value={(formData as SignupCredentials).name}
-                          onChange={handleChange}
-                        />
-                      </div>
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                      <input
+                        id="name"
+                        name="name"
+                        type="text"
+                        required
+                        placeholder="Full name"
+                        className="appearance-none bg-white/10 block w-full px-3 py-3 pl-12 border border-white/10 placeholder-gray-400 text-white rounded-xl focus:outline-none focus:ring-legal-gold/50 focus:border-legal-gold transition-colors duration-200"
+                        value={(formData as SignupCredentials).name}
+                        onChange={handleChange}
+                      />
                     </div>
 
-                    <div>
+                    <div className="relative flex flex-col">
                       <label htmlFor="phone" className="sr-only">Phone Number</label>
-                      <div className="relative">
-                        <Phone className="absolute inset-y-0 left-0 pl-3 h-5 w-5 text-gray-400" />
-                        <input
-                          id="phone"
-                          name="phone"
-                          type="tel"
-                          required
-                          placeholder="Phone Number"
-                          className="appearance-none relative block w-full px-3 py-2 pl-10 border border-white/10 placeholder-gray-400 text-white rounded-xl bg-white/10 focus:outline-none focus:ring-legal-gold/50 focus:border-legal-gold transition-colors duration-200"
-                          value={(formData as SignupCredentials).phone}
-                          onChange={handleChange}
-                        />
-                      </div>
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                      <input
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        required
+                        placeholder="Phone Number"
+                        className="appearance-none block w-full px-3 py-3 pl-12 border border-white/10 placeholder-gray-400 text-white rounded-xl bg-white/10 focus:outline-none focus:ring-legal-gold/50 focus:border-legal-gold transition-colors duration-200"
+                        value={(formData as SignupCredentials).phone}
+                        onChange={handleChange}
+                      />
                     </div>
 
-                    <div>
+                    <div className="relative flex flex-col">
                       <label htmlFor="address" className="sr-only">Address</label>
-                      <div className="relative">
-                        <MapPin className="absolute inset-y-0 left-0 pl-3 h-5 w-5 text-gray-400" />
-                        <input
-                          id="address"
-                          name="address"
-                          type="text"
-                          required
-                          placeholder="Address"
-                          className="appearance-none relative block w-full px-3 py-2 pl-10 border border-white/10 placeholder-gray-400 text-white rounded-xl bg-white/10 focus:outline-none focus:ring-legal-gold/50 focus:border-legal-gold transition-colors duration-200"
-                          value={(formData as SignupCredentials).address}
-                          onChange={handleChange}
-                        />
-                      </div>
+                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                      <input
+                        id="address"
+                        name="address"
+                        type="text"
+                        required
+                        placeholder="Address"
+                        className="appearance-none block w-full px-3 py-3 pl-12 border border-white/10 placeholder-gray-400 text-white rounded-xl bg-white/10 focus:outline-none focus:ring-legal-gold/50 focus:border-legal-gold transition-colors duration-200"
+                        value={(formData as SignupCredentials).address}
+                        onChange={handleChange}
+                      />
                     </div>
-
-                    {selectedRole === "legal" && (
-                      <div>
-                        <label htmlFor="file" className="block text-sm font-medium text-white mb-1">Upload Verification Document</label>
-                        <input
-                          id="file"
-                          name="file"
-                          type="file"
-                          accept=".pdf,.jpg,.jpeg,.png"
-                          required
-                          className="block w-full text-sm text-gray-300 bg-black/20 rounded-lg border border-white/10 cursor-pointer focus:outline-none"
-                          onChange={(e) => setFile(e.target.files?.[0] || null)}
-                        />
-                      </div>
-                    )}
                   </>
                 )}
 
-                <div className="space-y-4">
-                  <div className="relative">
-                    <Mail className="absolute inset-y-0 left-0 pl-3 h-5 w-5 text-gray-400" />
+                <div className="flex flex-col gap-4">
+                  <div className="relative flex flex-col">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
                     <input
                       type="email"
                       name="email"
                       required
                       placeholder="Email address"
-                      className="appearance-none relative block w-full px-3 py-3 pl-10 border border-white/10 placeholder-gray-400 text-white rounded-xl bg-white/10 focus:outline-none focus:ring-legal-gold/50 focus:border-legal-gold transition-colors duration-200"
+                      className="appearance-none block w-full px-3 py-3 pl-12 border border-white/10 placeholder-gray-400 text-white rounded-xl bg-white/10 focus:outline-none focus:ring-legal-gold/50 focus:border-legal-gold transition-colors duration-200"
                       value={formData.email}
                       onChange={handleChange}
                     />
                   </div>
 
-                  <div className="relative">
-                    <Lock className="absolute inset-y-0 left-0 pl-3 h-5 w-5 text-gray-400" />
+                  <div className="relative flex flex-col">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
                     <input
                       type="password"
                       name="password"
                       required
                       placeholder="Password"
-                      className="appearance-none relative block w-full px-3 py-3 pl-10 border border-white/10 placeholder-gray-400 text-white rounded-xl bg-white/10 focus:outline-none focus:ring-legal-gold/50 focus:border-legal-gold transition-colors duration-200"
+                      className="appearance-none block w-full px-3 py-3 pl-12 border border-white/10 placeholder-gray-400 text-white rounded-xl bg-white/10 focus:outline-none focus:ring-legal-gold/50 focus:border-legal-gold transition-colors duration-200"
                       value={formData.password}
                       onChange={handleChange}
                     />
                   </div>
 
                   {mode === "signup" && (
-                    <div className="relative">
-                      <Lock className="absolute inset-y-0 left-0 pl-3 h-5 w-5 text-gray-400" />
+                    <div className="relative flex flex-col">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
                       <input
                         type="password"
                         name="confirmPassword"
                         required
                         placeholder="Confirm Password"
-                        className="appearance-none relative block w-full px-3 py-3 pl-10 border border-white/10 placeholder-gray-400 text-white rounded-xl bg-white/10 focus:outline-none focus:ring-legal-gold/50 focus:border-legal-gold transition-colors duration-200"
+                        className="appearance-none block w-full px-3 py-3 pl-12 border border-white/10 placeholder-gray-400 text-white rounded-xl bg-white/10 focus:outline-none focus:ring-legal-gold/50 focus:border-legal-gold transition-colors duration-200"
                         value={(formData as SignupCredentials).confirmPassword}
                         onChange={handleChange}
                       />
@@ -311,11 +290,26 @@ export default function AuthForm({ mode, onClose, onSuccess }: AuthFormProps) {
                   )}
                 </div>
 
+                {mode === "signup" && selectedRole === "legal" && (
+                  <div>
+                    <label htmlFor="file" className="block text-md font-medium text-white mb-2">Upload Verification Document</label>
+                    <input
+                      id="file"
+                      name="file"
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      required
+                      className="block w-full text-sm text-gray-300 bg-black/20 p-2 rounded-lg border border-white/10 cursor-pointer focus:outline-none"
+                      onChange={(e) => setFile(e.target.files?.[0] || null)}
+                    />
+                  </div>
+                )}
+
                 {error && <p className="text-sm text-red-400">{error}</p>}
 
                 <button
                   type="submit"
-                  className="w-full py-3 mt-4 font-semibold rounded-xl bg-legal-gold text-black hover:bg-yellow-500 transition-colors duration-200"
+                  className="w-full py-3 mt-4 font-semibold rounded-xl bg-legal-gold text-white border hover:text-black hover:bg-yellow-500 transition-colors duration-200 text-base sm:text-lg"
                   disabled={loading}
                 >
                   {loading
@@ -330,7 +324,7 @@ export default function AuthForm({ mode, onClose, onSuccess }: AuthFormProps) {
 
               {mode === "login" && (
                 <p className="mt-4 text-center text-sm text-gray-400">
-                  Don't have an account?{" "}
+                  Don&apos;t have an account?{" "}
                   <Link href="#" className="text-legal-gold hover:underline">
                     Sign up
                   </Link>
@@ -341,7 +335,14 @@ export default function AuthForm({ mode, onClose, onSuccess }: AuthFormProps) {
         </div>
       </div>
 
-      {showTerms && <TermsAndConditionsModal onAccept={handleTermsAccept} onClose={() => setShowTerms(false)} />}
+      {showTerms && (
+        <TermsAndConditionsModal
+          isOpen={showTerms}
+          userRole={selectedRole}
+          onAccept={handleTermsAccept}
+          onClose={() => setShowTerms(false)}
+        />
+      )}
     </>
   );
 }

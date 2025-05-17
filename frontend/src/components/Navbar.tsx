@@ -36,20 +36,20 @@ export default function Navbar() {
   // Navbar links
   const navLinks = (
     <>
-      <Link href="/" className="navbar-home text-gray-300 text-base font-medium hover:text-legal-gold transition-colors relative group block py-2 px-2 md:px-0">
+      <Link href="/" className="navbar-home text-gray-300 text-lg font-medium hover:text-legal-gold transition-colors relative group block py-2 px-2 md:px-0">
         Home
       </Link>
-      <Link href="/#features" className="navbar-features text-gray-300 text-base font-medium hover:text-legal-gold transition-colors relative group block py-2 px-2 md:px-0">
+      <Link href="/#features" className="navbar-features text-gray-300 text-lg font-medium hover:text-legal-gold transition-colors relative group block py-2 px-2 md:px-0">
         Features
       </Link>
       {isLoggedIn ? (
         <>
-          <Link href="/dashboard" className="navbar-dashboard text-gray-300 text-base font-medium hover:text-legal-gold transition-colors relative group block py-2 px-2 md:px-0">
+          <Link href="/dashboard" className="navbar-dashboard text-gray-300 text-lg font-medium hover:text-legal-gold transition-colors relative group block py-2 px-2 md:px-0">
             Dashboard
           </Link>
           <button 
             onClick={handleLogout} 
-            className="navbar-logout flex items-center gap-1.5 px-5 py-2 cursor-pointer text-white bg-legal-gold hover:bg-legal-gold/90 rounded-xl font-medium transition-colors relative group overflow-hidden w-full md:w-auto mt-2 md:mt-0"
+            className="navbar-logout items-center gap-1.5 px-5 py-2 cursor-pointer text-white bg-legal-gold hover:bg-legal-gold/90 rounded-xl font-medium transition-colors relative group overflow-hidden w-full md:w-auto mt-2 md:mt-0"
           >
             <LogOut className="h-4 w-4" />
             Logout
@@ -59,13 +59,13 @@ export default function Navbar() {
         <>
           <button 
             onClick={() => { setShowLoginForm(true); setMobileMenuOpen(false); }} 
-            className="navbar-login text-gray-300 text-base cursor-pointer font-medium transition-colors relative group block py-2 px-2 md:px-0 w-full md:w-auto"
+            className="navbar-login text-gray-300 text-lg cursor-pointer font-medium transition-colors relative group block py-2 px-2 md:px-0 w-full md:w-auto"
           >
             Login
           </button>
           <button 
             onClick={() => { setShowSignupForm(true); setMobileMenuOpen(false); }} 
-            className="navbar-signup text-gray-300 font-medium cursor-pointer transition-colors relative group block py-2 px-2 md:px-0 w-full md:w-auto"
+            className="navbar-signup text-gray-300 text-lg font-medium cursor-pointer transition-colors relative group block py-2 px-2 md:px-0 w-full md:w-auto"
           >
             Sign Up
           </button>
@@ -76,7 +76,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="w-full bg-black/30 backdrop-blur-lg shadow-md py-3 px-4 md:px-8 flex items-center justify-between fixed top-0 gap-4 z-40">
+      <nav className="w-full bg-black/30 backdrop-blur-lg shadow-md py-2 px-4 md:px-8 flex items-center justify-between fixed top-0 gap-4 z-40">
         <div className="flex items-center gap-3">
           <div>
             <Scale className="h-7 w-7 text-legal-gold" />

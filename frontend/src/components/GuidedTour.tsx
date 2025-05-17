@@ -13,6 +13,7 @@ export default function GuidedTour() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
+    // Only show the tour if not already completed
     if (typeof window !== "undefined" && !localStorage.getItem("guidedTourDone")) {
       setShow(true);
     }
@@ -21,6 +22,7 @@ export default function GuidedTour() {
   useEffect(() => {
     if (!show) return;
     const el = document.querySelector(steps[0]?.selector);
+    console.log('GuidedTour: .navbar-signup element:', el);
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "center" });
     }

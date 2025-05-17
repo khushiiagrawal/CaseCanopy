@@ -20,15 +20,16 @@ export default function AnimatedFeatureCard({
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay }}
       viewport={{ once: false }}
-      className="group relative bg-white/10 backdrop-blur-md rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:-translate-y-2 hover:shadow-xl border border-white/10 max-w-md w-full mx-auto p-4 sm:p-6 md:p-8"
+      className="group relative bg-white/10 backdrop-blur-md rounded-2xl shadow-xl overflow-hidden transform transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl border border-white/10 max-w-md w-full mx-auto p-4 sm:p-6 md:p-8"
     >
+      <div className="absolute inset-0 bg-gradient-to-br from-legal-gold/10 to-transparent opacity-70 pointer-events-none" />
       <div className="absolute inset-0 bg-gradient-to-br from-legal-gold/5 to-legal-navy/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       <div className="absolute -right-10 -top-10 w-32 h-32 bg-legal-gold/10 rounded-full blur-3xl group-hover:bg-legal-gold/20 transition-all duration-500" />
       <div className="absolute -left-10 -bottom-10 w-32 h-32 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all duration-500" />
       <div className="relative flex flex-col items-center">
         <motion.div
           whileHover={{ scale: 1.1, rotate: 5 }}
-          className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-legal-navy to-legal-navy/70 rounded-xl flex items-center justify-center mb-4 sm:mb-5 shadow-md"
+          className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-legal-navy to-legal-navy/70 rounded-xl flex items-center justify-center mb-4 sm:mb-5 shadow-md border-2 border-legal-gold/40"
         >
           <Icon className="h-8 w-8 sm:h-9 sm:w-9 text-legal-gold" />
         </motion.div>
