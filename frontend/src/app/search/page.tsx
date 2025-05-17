@@ -25,7 +25,7 @@ export default function SearchPage() {
   const [isUploading, setIsUploading] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  const [, setFilters] = useState<SearchFiltersType>({
+  const [filters, setFilters] = useState<SearchFiltersType>({
     jurisdiction: "",
     year: "",
     caseType: "",
@@ -63,37 +63,40 @@ export default function SearchPage() {
     return null; // or a loading spinner
   }
 
-  const handleSearch = async (e: React.FormEvent) => {
+  const handleLangchainSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      try {
-        setIsLoading(true);
-        const response = await fetch('http://localhost:8000/api/submit/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            query: searchQuery,
-          }),
-        });
 
-        if (!response.ok) {
-          throw new Error('Failed to submit search');
-        }
+    // Combine all filter values into a string
+    const filterString = [
+      filters.jurisdiction && `jurisdiction ${filters.jurisdiction}`,
+      filters.year && `year ${filters.year}`,
+      filters.caseType && `casetype ${filters.caseType}`,
+      filters.outcome && `outcome ${filters.outcome}`,
+      filters.tags.length > 0 && `tags ${filters.tags.join(", ")}`
+    ].filter(Boolean).join(", ");
 
-        await response.json();
-        router.push(
-          `/results?q=${encodeURIComponent(searchQuery)}`
-        );
-      } catch {
-        setToast({
-          message: 'Error submitting search',
-          type: 'error'
-        });
-      } finally {
-        setIsLoading(false);
-      }
+    // Combine with the search query
+    const combinedInput = [searchQuery, filterString].filter(Boolean).join(", ");
+
+    setIsLoading(true);
+    try {
+      // 1. Save the query
+      const saveRes = await fetch('http://localhost:9000/api/feed-input', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input: combinedInput }),
+      });
+      if (!saveRes.ok) throw new Error('Failed to save query');
+
+      // 2. Get the processed result
+      const processRes = await fetch('http://localhost:9000/api/process-backend');
+      if (!processRes.ok) throw new Error('Failed to process query');
+
+      setToast({ message: 'LangChain response received!', type: 'success' });
+    } catch {
+      setToast({ message: 'Error contacting LangChain backend', type: 'error' });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -232,7 +235,7 @@ export default function SearchPage() {
 
           {/* Search Section */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-modern p-6 mb-8 glass">
-            <form onSubmit={handleSearch}>
+            <form onSubmit={handleLangchainSearch}>
               <div className="flex space-x-3 mb-4">
                 <div className="w-full text-center py-3 px-4 rounded-lg text-sm font-medium bg-gradient-to-r from-emerald-600 via-primary-500 to-indigo-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
                   <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 via-primary-400/20 to-indigo-400/20 animate-gradient-x"></div>
@@ -294,31 +297,6 @@ export default function SearchPage() {
                 </div>
               </div>
             </form>
-            {/* Parsed Document Preview */}
-            {/* {parsedDoc && (
-              <div className="mt-8 p-6 rounded-lg bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700 shadow">
-                <h3 className="text-lg font-semibold mb-2 text-primary-700 dark:text-primary-200">Parsed Document Result</h3>
-                <div className="mb-2 text-xs text-gray-500 dark:text-gray-400">Pages: <span className="font-bold">{parsedDoc.pages}</span></div>
-                <div className="mb-2 text-xs text-gray-500 dark:text-gray-400">Metadata:</div>
-                <ul className="mb-4 text-xs text-gray-700 dark:text-gray-200">
-                  {Object.entries(parsedDoc.metadata).length === 0 && <li className="italic">No metadata found</li>}
-                  {Object.entries(parsedDoc.metadata).map(([k, v]) => (
-                    <li key={k}><span className="font-semibold">{k}:</span> {v}</li>
-                  ))}
-                </ul>
-                <div className="mb-2 text-xs text-gray-500 dark:text-gray-400">Extracted Text (first 1000 chars):</div>
-                <div className="whitespace-pre-wrap text-sm bg-white dark:bg-gray-800 p-3 rounded max-h-64 overflow-auto border border-gray-200 dark:border-gray-700">
-                  {parsedDoc.text ? (
-                    <>
-                      {parsedDoc.text.slice(0, 1000)}
-                      {parsedDoc.text.length > 1000 && <span className="text-gray-400">... (truncated)</span>}
-                    </>
-                  ) : (
-                    <span className="italic text-gray-400">No text content available</span>
-                  )}
-                </div>
-              </div>
-            )} */}
           </div>
 
           {/* Tips and Filters Section */}
