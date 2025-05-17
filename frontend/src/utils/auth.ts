@@ -11,7 +11,7 @@ export interface SignupCredentials extends LoginCredentials {
 }
 
 export const login = async (credentials: LoginCredentials): Promise<AuthState> => {
-  const response = await fetch('/api/auth/login', {
+  const response = await fetch('http://localhost:8000/api/signin', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -25,6 +25,12 @@ export const login = async (credentials: LoginCredentials): Promise<AuthState> =
   }
 
   const data = await response.json();
+  
+  // Check if user is legal and not approved
+  if (data.user.role === 'legal' && !data.user.approve) {
+    throw new Error('Your account is pending approval. Please wait for admin verification.');
+  }
+
   const authState: AuthState = {
     user: data.user,
     token: data.token,

@@ -149,6 +149,8 @@ func (ac *AdminController) ApproveUser(c *gin.Context) {
 		return
 	}
 
+	fmt.Printf("Attempting to approve user with email: %s\n", req.Email)
+
 	// Update user approval status by email
 	result, err := ac.UserCollection.UpdateOne(
 		context.Background(),
@@ -156,26 +158,34 @@ func (ac *AdminController) ApproveUser(c *gin.Context) {
 		bson.M{"$set": bson.M{"approve": true}},
 	)
 	if err != nil {
+		fmt.Printf("Error updating user approval status: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to approve user"})
 		return
 	}
 
 	if result.MatchedCount == 0 {
+		fmt.Printf("No user found with email: %s\n", req.Email)
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
+
+	fmt.Printf("Successfully updated approval status for user: %s\n", req.Email)
 
 	// Get user details to send email
 	var user models.User
 	err = ac.UserCollection.FindOne(context.Background(), bson.M{"email": req.Email}).Decode(&user)
 	if err != nil {
+		fmt.Printf("Error fetching updated user details: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user details"})
 		return
 	}
 
+	fmt.Printf("User details after approval - Email: %s, Role: %s, Approved: %v\n", user.Email, user.Role, user.Approve)
+
 	// Send approval email
 	if err := ac.EmailService.SendApprovalEmail(user.Email, user.Name); err != nil {
 		// Log the error but don't fail the approval
+		fmt.Printf("Failed to send approval email: %v\n", err)
 		c.JSON(http.StatusOK, gin.H{
 			"message": "User approved successfully, but failed to send email notification",
 			"error":   err.Error(),

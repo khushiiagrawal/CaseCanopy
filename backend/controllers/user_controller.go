@@ -138,7 +138,8 @@ func (uc *UserController) Signin(c *gin.Context) {
 
 	// Check if user is approved (for legal users)
 	if user.Role == "legal" && !user.Approve {
-		c.JSON(401, gin.H{"error": "Your account is pending approval. Please wait for admin verification."})
+		fmt.Printf("Legal user %s attempted login but is not approved\n", user.Email)
+		c.JSON(403, gin.H{"error": "Your account is pending approval. Please wait for admin verification."})
 		return
 	}
 
@@ -155,13 +156,16 @@ func (uc *UserController) Signin(c *gin.Context) {
 		return
 	}
 
+	fmt.Printf("User %s logged in successfully. Role: %s, Approved: %v\n", user.Email, user.Role, user.Approve)
+
 	c.JSON(200, gin.H{
 		"token": token,
 		"user": gin.H{
-			"id":    user.ID,
-			"name":  user.Name,
-			"email": user.Email,
-			"role":  user.Role,
+			"id":      user.ID,
+			"name":    user.Name,
+			"email":   user.Email,
+			"role":    user.Role,
+			"approve": user.Approve,
 		},
 	})
 }

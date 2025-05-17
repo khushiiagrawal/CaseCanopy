@@ -5,14 +5,14 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { login, signup } from "@/utils/auth";
 import { LoginCredentials, SignupCredentials } from "@/types/auth";
-import { Scale, Users, Globe, User, Mail, Lock } from "lucide-react";
+import { Scale, Globe, User, Mail, Lock } from "lucide-react";
 
 interface AuthFormProps {
   mode: "login" | "signup";
   onClose: () => void;
 }
 
-type UserRole = "legal" | "advocate" | "public";
+type UserRole = "legal" | "public";
 
 export default function AuthForm({ mode, onClose }: AuthFormProps) {
   const router = useRouter();
@@ -35,7 +35,14 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
 
     try {
       if (mode === "login") {
-        await login(formData as LoginCredentials);
+        const authState = await login(formData as LoginCredentials);
+        // Only navigate if login was successful and user is approved (for legal users)
+        if (
+          authState.user &&
+          (authState.user.role !== "legal" || authState.user.approve)
+        ) {
+          router.push("/dashboard");
+        }
       } else {
         const signupData = formData as SignupCredentials;
         if (signupData.password !== signupData.confirmPassword) {
@@ -63,11 +70,16 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
           // Store the response data
           localStorage.setItem("token", data.token);
           localStorage.setItem("user", JSON.stringify(data.user));
+          // Show success message for legal signup
+          setError(
+            "Registration successful! Please wait for admin approval before signing in."
+          );
+          return;
         } else {
           await signup({ ...signupData, role: selectedRole });
+          router.push("/dashboard");
         }
       }
-      router.push("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -88,16 +100,10 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
       description: "Lawyers, paralegals, and legal researchers",
     },
     {
-      id: "advocate",
-      name: "Community Advocate",
-      icon: Users,
-      description: "Community leaders and environmental activists",
-    },
-    {
       id: "public",
       name: "General Public",
       icon: Globe,
-      description: "Citizens interested in environmental justice",
+      description: "Citizens interested in  justice",
     },
   ];
 
@@ -143,34 +149,37 @@ export default function AuthForm({ mode, onClose }: AuthFormProps) {
             <form onSubmit={handleSubmit} className="space-y-4">
               {mode === "signup" && (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
                     {roles.map((role) => (
                       <button
                         key={role.id}
                         type="button"
                         onClick={() => setSelectedRole(role.id as UserRole)}
-                        className={`relative rounded-lg border p-2 flex flex-col items-center space-y-1 hover:border-primary-500 focus:outline-none transition-colors duration-200 cursor-pointer ${
+                        className={`relative rounded-lg border p-4 flex flex-col items-center space-y-2 hover:border-primary-500 focus:outline-none transition-colors duration-200 cursor-pointer ${
                           selectedRole === role.id
                             ? "border-primary-500 bg-primary-50 dark:bg-primary-900/30"
                             : "border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800"
                         }`}
                       >
                         <role.icon
-                          className={`h-5 w-5 ${
+                          className={`h-6 w-6 ${
                             selectedRole === role.id
                               ? "text-primary-600"
                               : "text-gray-400 dark:text-gray-500"
                           }`}
                         />
                         <span
-                          className={`text-xs font-medium ${
+                          className={`text-sm font-medium ${
                             selectedRole === role.id
                               ? "text-primary-600"
                               : "text-gray-900 dark:text-white"
                           }`}
                         >
-                          {role.name.split(" ")[0]}
+                          {role.name}
                         </span>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                          {role.description}
+                        </p>
                       </button>
                     ))}
                   </div>

@@ -6,6 +6,7 @@ export interface IUser extends mongoose.Document {
   email: string;
   password: string;
   role: 'legal' | 'advocate' | 'public';
+  approve: boolean;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -32,6 +33,10 @@ const userSchema = new mongoose.Schema({
     enum: ['legal', 'advocate', 'public'],
     default: 'public',
   },
+  approve: {
+    type: Boolean,
+    default: true
+  }
 }, {
   timestamps: true,
 });
