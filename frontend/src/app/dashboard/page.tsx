@@ -8,11 +8,11 @@ import {
   Bookmark,
   Clock,
   ArrowRight,
-  Sparkles,
   FileText,
+  Scale,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { getAuthState } from "@/utils/auth";
-import CaseSummaryCard from "@/components/CaseSummaryCard";
 import { ICaseSummary } from "@/models/CaseSummary";
 import { Types } from "mongoose";
 
@@ -25,7 +25,9 @@ export default function DashboardPage() {
     })[]
   >([]);
   const [loading, setLoading] = useState(true);
-  const [authState, setAuthState] = useState<ReturnType<typeof getAuthState> | null>(null);
+  const [authState, setAuthState] = useState<ReturnType<
+    typeof getAuthState
+  > | null>(null);
 
   useEffect(() => {
     const currentAuthState = getAuthState();
@@ -68,82 +70,104 @@ export default function DashboardPage() {
   const isLegalUser = userRole === "legal";
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-primary-50 to-white dark:from-gray-900 dark:via-primary-900/20 dark:to-gray-900">
-      {/* Background Elements */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary-100 via-white to-white dark:from-primary-900/30 dark:via-gray-900 dark:to-gray-900" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-secondary-50 via-white to-white dark:from-secondary-900/30 dark:via-gray-900 dark:to-gray-900" />
+    <div className="min-h-screen bg-black text-white pb-16 pt-24">
+      {/* Background gradients */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-[#CD9A3C]/20 via-black to-black opacity-80" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-[#E3B448]/10 via-black to-black opacity-80" />
 
-      <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
-        {/* Welcome Section */}
-        <div className="max-w-2xl mx-auto text-center mb-8">
-          <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300 mb-3">
-            <Sparkles className="h-4 w-4 mr-1.5" />
-            <span className="text-sm font-medium">Welcome Back</span>
+      <div className="relative max-w-7xl mx-auto px-6">
+        {/* Welcome Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="mb-12 text-center"
+        >
+          <div className="inline-flex items-center px-4 py-2 rounded-full bg-[#E3B448]/20 text-[#E3B448] mb-4">
+            <Scale className="h-4 w-4 mr-2" />
+            <span className="text-sm font-medium">Legal Dashboard</span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            {authState.user?.name}
+          <h1 className="text-3xl md:text-4xl font-serif font-bold text-white mb-3">
+            Welcome,{" "}
+            <span className="text-[#E3B448]">{authState.user?.name}</span>
           </h1>
-          <p className="text-base md:text-lg text-gray-600 dark:text-gray-300 max-w-xl mx-auto">
+          <p className="text-gray-300 max-w-2xl mx-auto">
             {isLegalUser
-              ? "Access your legal research tools and case summaries"
-              : "Explore legal cases and summaries from our community"}
+              ? "Access your professional legal resources and case management tools"
+              : "Explore case insights and navigate your legal resources"}
           </p>
-        </div>
+          <div className="mt-4 h-1 w-40 mx-auto bg-gradient-to-r from-transparent via-[#E3B448]/80 to-transparent"></div>
+        </motion.div>
 
         {/* Main Actions Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 max-w-4xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12"
+        >
           <Link
             href="/search"
-            className="group relative bg-white dark:bg-gray-800 rounded-xl shadow-modern overflow-hidden transform transition-all duration-300 hover:-translate-y-1 glass h-full"
+            className="bg-gradient-to-br from-[#1A1A1A] to-black rounded-2xl overflow-hidden shadow-xl border border-[#CD9A3C]/20 relative group"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-secondary-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
-            <div className="absolute -right-10 -top-10 w-40 h-40 bg-primary-500/10 rounded-full blur-3xl group-hover:bg-primary-500/20 transition-all duration-500" />
-            <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-secondary-500/10 rounded-full blur-3xl group-hover:bg-secondary-500/20 transition-all duration-500" />
-            <div className="p-6 relative h-full flex flex-col">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center shadow-modern group-hover:scale-110 transition-transform duration-300">
-                  <Search className="h-6 w-6 text-white" />
+            <div className="relative p-6">
+              <div className="flex items-center mb-5">
+                <div className="w-12 h-12 rounded-full bg-[#E3B448]/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <Search className="w-6 h-6 text-[#E3B448]" />
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-300">
-                    Start Search
+                  <h3 className="text-xl font-serif text-white group-hover:text-[#E3B448] transition-colors duration-300">
+                    Case Search
                   </h3>
-                  <p className="mt-0.5 text-sm text-gray-600 dark:text-gray-300">
-                    Find relevant legal precedents
+                  <p className="text-sm text-gray-400">
+                    Find legal precedents and analyze cases
                   </p>
                 </div>
               </div>
-              <div className="mt-auto flex items-center text-primary-600 dark:text-primary-400 group-hover:translate-x-2 transition-transform duration-300">
-                <span className="font-medium text-sm">Begin search</span>
-                <ArrowRight className="ml-1.5 h-4 w-4" />
+
+              <div className="bg-black/60 p-4 rounded-xl border border-[#CD9A3C]/10 backdrop-blur-sm mb-4">
+                <p className="text-gray-300 text-sm">
+                  Access our extensive database of legal cases and find relevant
+                  precedents for your legal research.
+                </p>
+              </div>
+
+              <div className="flex items-center text-[#E3B448] group-hover:translate-x-2 transition-transform duration-300">
+                <span className="font-medium text-sm">Launch search</span>
+                <ArrowRight className="ml-2 h-4 w-4" />
               </div>
             </div>
           </Link>
 
           <Link
             href="/saved"
-            className="group relative bg-white dark:bg-gray-800 rounded-xl shadow-modern overflow-hidden transform transition-all duration-300 hover:-translate-y-1 glass h-full"
+            className="bg-gradient-to-br from-[#1A1A1A] to-black rounded-2xl overflow-hidden shadow-xl border border-[#CD9A3C]/20 relative group"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-secondary-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
-            <div className="absolute -right-10 -top-10 w-40 h-40 bg-primary-500/10 rounded-full blur-3xl group-hover:bg-primary-500/20 transition-all duration-500" />
-            <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-secondary-500/10 rounded-full blur-3xl group-hover:bg-secondary-500/20 transition-all duration-500" />
-            <div className="p-6 relative h-full flex flex-col">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center shadow-modern group-hover:scale-110 transition-transform duration-300">
-                  <Bookmark className="h-6 w-6 text-white" />
+            <div className="relative p-6">
+              <div className="flex items-center mb-5">
+                <div className="w-12 h-12 rounded-full bg-[#E3B448]/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <Bookmark className="w-6 h-6 text-[#E3B448]" />
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-300">
+                  <h3 className="text-xl font-serif text-white group-hover:text-[#E3B448] transition-colors duration-300">
                     Saved Cases
                   </h3>
-                  <p className="mt-0.5 text-sm text-gray-600 dark:text-gray-300">
-                    Access your bookmarked cases
+                  <p className="text-sm text-gray-400">
+                    Access your bookmarked legal cases
                   </p>
                 </div>
               </div>
-              <div className="mt-auto flex items-center text-primary-600 dark:text-primary-400 group-hover:translate-x-2 transition-transform duration-300">
+
+              <div className="bg-black/60 p-4 rounded-xl border border-[#CD9A3C]/10 backdrop-blur-sm mb-4">
+                <p className="text-gray-300 text-sm">
+                  Review and organize your saved cases. Add notes and categorize
+                  for better case management.
+                </p>
+              </div>
+
+              <div className="flex items-center text-[#E3B448] group-hover:translate-x-2 transition-transform duration-300">
                 <span className="font-medium text-sm">View saved cases</span>
-                <ArrowRight className="ml-1.5 h-4 w-4" />
+                <ArrowRight className="ml-2 h-4 w-4" />
               </div>
             </div>
           </Link>
@@ -151,99 +175,159 @@ export default function DashboardPage() {
           {isLegalUser ? (
             <Link
               href="/dashboard/publish"
-              className="group relative bg-white dark:bg-gray-800 rounded-xl shadow-modern overflow-hidden transform transition-all duration-300 hover:-translate-y-1 glass h-full"
+              className="bg-gradient-to-br from-[#1A1A1A] to-black rounded-2xl overflow-hidden shadow-xl border border-[#CD9A3C]/20 relative group"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-secondary-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
-              <div className="absolute -right-10 -top-10 w-40 h-40 bg-primary-500/10 rounded-full blur-3xl group-hover:bg-primary-500/20 transition-all duration-500" />
-              <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-secondary-500/10 rounded-full blur-3xl group-hover:bg-secondary-500/20 transition-all duration-500" />
-              <div className="p-6 relative h-full flex flex-col">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center shadow-modern group-hover:scale-110 transition-transform duration-300">
-                    <FileText className="h-6 w-6 text-white" />
+              <div className="relative p-6">
+                <div className="flex items-center mb-5">
+                  <div className="w-12 h-12 rounded-full bg-[#E3B448]/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <FileText className="w-6 h-6 text-[#E3B448]" />
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-300">
-                      Publish Summary
+                    <h3 className="text-xl font-serif text-white group-hover:text-[#E3B448] transition-colors duration-300">
+                      Publish Analysis
                     </h3>
-                    <p className="mt-0.5 text-sm text-gray-600 dark:text-gray-300">
-                      Share your case analysis
+                    <p className="text-sm text-gray-400">
+                      Share your case analysis and insights
                     </p>
                   </div>
                 </div>
-                <div className="mt-auto flex items-center text-primary-600 dark:text-primary-400 group-hover:translate-x-2 transition-transform duration-300">
-                  <span className="font-medium text-sm">Write a summary</span>
-                  <ArrowRight className="ml-1.5 h-4 w-4" />
+
+                <div className="bg-black/60 p-4 rounded-xl border border-[#CD9A3C]/10 backdrop-blur-sm mb-4">
+                  <p className="text-gray-300 text-sm">
+                    Create professional case summaries and legal analysis to
+                    publish within your organization.
+                  </p>
+                </div>
+
+                <div className="flex items-center text-[#E3B448] group-hover:translate-x-2 transition-transform duration-300">
+                  <span className="font-medium text-sm">Create analysis</span>
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </div>
               </div>
             </Link>
           ) : (
             <Link
               href="/recent"
-              className="group relative bg-white dark:bg-gray-800 rounded-xl shadow-modern overflow-hidden transform transition-all duration-300 hover:-translate-y-1 glass h-full"
+              className="bg-gradient-to-br from-[#1A1A1A] to-black rounded-2xl overflow-hidden shadow-xl border border-[#CD9A3C]/20 relative group"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-secondary-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
-              <div className="absolute -right-10 -top-10 w-40 h-40 bg-primary-500/10 rounded-full blur-3xl group-hover:bg-primary-500/20 transition-all duration-500" />
-              <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-secondary-500/10 rounded-full blur-3xl group-hover:bg-secondary-500/20 transition-all duration-500" />
-              <div className="p-6 relative h-full flex flex-col">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center shadow-modern group-hover:scale-110 transition-transform duration-300">
-                    <Clock className="h-6 w-6 text-white" />
+              <div className="relative p-6">
+                <div className="flex items-center mb-5">
+                  <div className="w-12 h-12 rounded-full bg-[#E3B448]/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Clock className="w-6 h-6 text-[#E3B448]" />
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-300">
-                      Recent Cases
+                    <h3 className="text-xl font-serif text-white group-hover:text-[#E3B448] transition-colors duration-300">
+                      Recent Activity
                     </h3>
-                    <p className="mt-0.5 text-sm text-gray-600 dark:text-gray-300">
+                    <p className="text-sm text-gray-400">
                       View your recently accessed cases
                     </p>
                   </div>
                 </div>
-                <div className="mt-auto flex items-center text-primary-600 dark:text-primary-400 group-hover:translate-x-2 transition-transform duration-300">
-                  <span className="font-medium text-sm">View recent cases</span>
-                  <ArrowRight className="ml-1.5 h-4 w-4" />
+
+                <div className="bg-black/60 p-4 rounded-xl border border-[#CD9A3C]/10 backdrop-blur-sm mb-4">
+                  <p className="text-gray-300 text-sm">
+                    Access your recent case history and continue where you left
+                    off in your legal research.
+                  </p>
+                </div>
+
+                <div className="flex items-center text-[#E3B448] group-hover:translate-x-2 transition-transform duration-300">
+                  <span className="font-medium text-sm">
+                    View recent activity
+                  </span>
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </div>
               </div>
             </Link>
           )}
-        </div>
+        </motion.div>
 
         {/* Case Summaries Section */}
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-6">
-            {isLegalUser ? "Your Published Summaries" : "Recent Case Summaries"}
-          </h2>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="mb-10"
+        >
+          <div className="flex items-center mb-6">
+            <span className="h-6 w-1 bg-[#E3B448] rounded-full mr-3"></span>
+            <h2 className="text-xl font-serif font-medium text-white">
+              {isLegalUser
+                ? "Your Published Analyses"
+                : "Recent Case Summaries"}
+            </h2>
+          </div>
 
           {loading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="animate-pulse">
-                  <div className="h-48 bg-gray-200 dark:bg-gray-700 rounded-xl"></div>
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="animate-pulse h-64 bg-gradient-to-br from-[#1A1A1A] to-black rounded-2xl border border-[#CD9A3C]/20"
+                ></div>
               ))}
             </div>
           ) : summaries.length > 0 ? (
-            <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {summaries.map((summary) => (
-                <CaseSummaryCard key={String(summary._id)} summary={summary} />
+                <div
+                  key={String(summary._id)}
+                  className="bg-gradient-to-br from-[#1A1A1A] to-black rounded-2xl overflow-hidden shadow-xl border border-[#CD9A3C]/20 p-6"
+                >
+                  <div className="mb-4">
+                    <h3 className="text-lg font-serif text-[#E3B448] mb-2">
+                      {summary.title}
+                    </h3>
+                    <p className="text-gray-300 text-sm line-clamp-3">
+                      {summary.content}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-center text-sm text-gray-400">
+                    <div>By: {summary.author.name}</div>
+                    <Link
+                      href={`/summaries/${summary._id}`}
+                      className="flex items-center text-[#E3B448] hover:underline"
+                    >
+                      Read more <ArrowRight className="ml-1 h-3 w-3" />
+                    </Link>
+                  </div>
+                </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow-modern glass">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900/50 mb-4">
-                <FileText className="h-6 w-6 text-primary-600 dark:text-primary-400" />
+            <div className="bg-gradient-to-br from-[#1A1A1A] to-black rounded-2xl overflow-hidden shadow-xl border border-[#CD9A3C]/20 p-6 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#E3B448]/20 mb-4">
+                <FileText className="h-8 w-8 text-[#E3B448]" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                No summaries yet
+              <h3 className="text-lg font-serif text-white mb-3">
+                No summaries available
               </h3>
-              <p className="text-gray-600 dark:text-gray-300">
+              <p className="text-gray-400 max-w-md mx-auto mb-4">
                 {isLegalUser
-                  ? "Start sharing your case analysis with the community"
-                  : "Legal professionals will share their case analysis here"}
+                  ? "Share your legal expertise by creating case analyses for your organization"
+                  : "Legal professionals will share case analyses here soon"}
               </p>
+              {isLegalUser && (
+                <Link
+                  href="/dashboard/publish"
+                  className="inline-block px-4 py-2 bg-[#E3B448]/20 text-[#E3B448] rounded-lg border border-[#CD9A3C]/30 hover:bg-[#E3B448]/30 transition-colors"
+                >
+                  Create your first analysis
+                </Link>
+              )}
             </div>
           )}
-        </div>
+        </motion.div>
       </div>
+
+      <style jsx global>{`
+        @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap");
+
+        .font-serif {
+          font-family: "Playfair Display", serif;
+        }
+      `}</style>
     </div>
   );
 }
