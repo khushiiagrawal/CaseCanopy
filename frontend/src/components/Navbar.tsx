@@ -42,6 +42,9 @@ export default function Navbar() {
       <Link href="/#features" className="navbar-features text-gray-300 text-lg font-medium hover:text-legal-gold transition-colors relative group block py-2 px-2 md:px-0">
         Features
       </Link>
+      <Link href="/search" className="navbar-search text-gray-300 text-lg font-medium hover:text-legal-gold transition-colors relative group block py-2 px-2 md:px-0">
+        Search
+      </Link>
       {isLoggedIn ? (
         <>
           <Link href="/dashboard" className="navbar-dashboard text-gray-300 text-lg font-medium hover:text-legal-gold transition-colors relative group block py-2 px-2 md:px-0">
