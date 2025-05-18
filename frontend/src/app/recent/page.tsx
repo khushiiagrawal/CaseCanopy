@@ -4,20 +4,19 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Bookmark, Clock, Search, Trash2, ExternalLink } from "lucide-react";
+import { Clock, Search, ArrowLeft } from "lucide-react";
 import { getAuthState } from "@/utils/auth";
 
-interface SavedCase {
+interface RecentSearch {
   id: string;
   query: string;
-  analysis: string;
   date: string;
-  sourcesCount: number;
+  response: string;
 }
 
-export default function SavedCasesPage() {
+export default function RecentActivityPage() {
   const router = useRouter();
-  const [savedCases, setSavedCases] = useState<SavedCase[]>([]);
+  const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,25 +27,18 @@ export default function SavedCasesPage() {
       return;
     }
 
-    // Load saved cases from localStorage
+    // Load recent searches from localStorage
     try {
-      const cases = JSON.parse(localStorage.getItem("savedCases") || "[]");
-      setSavedCases(cases);
+      const searches = JSON.parse(
+        localStorage.getItem("recentSearches") || "[]"
+      );
+      setRecentSearches(searches);
     } catch (error) {
-      console.error("Error loading saved cases:", error);
+      console.error("Error loading recent searches:", error);
     } finally {
       setLoading(false);
     }
   }, [router]);
-
-  const handleDeleteCase = (id: string) => {
-    // Filter out the case with the given id
-    const updatedCases = savedCases.filter((item) => item.id !== id);
-
-    // Update state and localStorage
-    setSavedCases(updatedCases);
-    localStorage.setItem("savedCases", JSON.stringify(updatedCases));
-  };
 
   const formatDate = (dateString: string) => {
     try {
@@ -55,6 +47,8 @@ export default function SavedCasesPage() {
         year: "numeric",
         month: "short",
         day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
     } catch {
       return "Unknown date";
@@ -79,18 +73,19 @@ export default function SavedCasesPage() {
             <div className="flex items-center">
               <span className="h-6 w-1 bg-[#E3B448] rounded-full mr-3"></span>
               <h1 className="text-2xl font-serif font-bold text-white">
-                Saved Cases
+                Recent Activity
               </h1>
             </div>
             <Link
               href="/dashboard"
               className="flex items-center text-sm text-[#E3B448] hover:underline"
             >
+              <ArrowLeft className="h-4 w-4 mr-1" />
               Back to Dashboard
             </Link>
           </div>
           <p className="text-gray-300 max-w-2xl">
-            Access your saved legal analyses and case research
+            View your recent legal case searches and analyses
           </p>
           <div className="mt-4 h-1 w-40 bg-gradient-to-r from-transparent via-[#E3B448]/80 to-transparent"></div>
         </motion.div>
@@ -105,11 +100,11 @@ export default function SavedCasesPage() {
               ></div>
             ))}
           </div>
-        ) : savedCases.length > 0 ? (
+        ) : recentSearches.length > 0 ? (
           <div className="grid grid-cols-1 gap-6">
-            {savedCases.map((caseItem) => (
+            {recentSearches.map((search) => (
               <motion.div
-                key={caseItem.id}
+                key={search.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
@@ -118,48 +113,20 @@ export default function SavedCasesPage() {
                 <div className="flex flex-col md:flex-row md:items-start gap-4">
                   <div className="flex-1">
                     <div className="flex items-center mb-3">
-                      <Bookmark className="h-5 w-5 text-[#E3B448] mr-2" />
+                      <Search className="h-5 w-5 text-[#E3B448] mr-2" />
                       <h3 className="text-lg font-serif text-white line-clamp-1">
-                        {caseItem.query}
+                        {search.query}
                       </h3>
                     </div>
 
                     <p className="text-gray-300 text-sm mb-4 line-clamp-3">
-                      {caseItem.analysis.substring(0, 200)}...
+                      {search.response.substring(0, 200)}...
                     </p>
 
-                    <div className="flex flex-wrap items-center text-sm text-gray-400 gap-x-4 gap-y-2">
-                      <div className="flex items-center">
-                        <Clock className="h-4 w-4 mr-1" />
-                        <span>{formatDate(caseItem.date)}</span>
-                      </div>
-
-                      {caseItem.sourcesCount > 0 && (
-                        <div className="flex items-center">
-                          <span className="px-2 py-0.5 text-xs bg-[#E3B448]/20 text-[#E3B448] rounded">
-                            {caseItem.sourcesCount} Sources
-                          </span>
-                        </div>
-                      )}
+                    <div className="flex items-center text-sm text-gray-400">
+                      <Clock className="h-4 w-4 mr-1" />
+                      <span>{formatDate(search.date)}</span>
                     </div>
-                  </div>
-
-                  <div className="flex flex-row md:flex-col gap-3 justify-end">
-                    <button
-                      onClick={() => handleDeleteCase(caseItem.id)}
-                      className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                      title="Delete case"
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </button>
-
-                    <Link
-                      href="/response"
-                      className="p-2 text-gray-400 hover:text-[#E3B448] hover:bg-[#E3B448]/10 rounded-lg transition-colors"
-                      title="View full analysis"
-                    >
-                      <ExternalLink className="h-5 w-5" />
-                    </Link>
                   </div>
                 </div>
               </motion.div>
@@ -173,14 +140,13 @@ export default function SavedCasesPage() {
             className="bg-gradient-to-br from-[#1A1A1A] to-black rounded-2xl overflow-hidden shadow-xl border border-[#CD9A3C]/20 p-8 text-center"
           >
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#E3B448]/20 mb-4">
-              <Bookmark className="h-8 w-8 text-[#E3B448]" />
+              <Search className="h-8 w-8 text-[#E3B448]" />
             </div>
             <h3 className="text-lg font-serif text-white mb-3">
-              No saved cases yet
+              No recent searches
             </h3>
             <p className="text-gray-400 max-w-md mx-auto mb-6">
-              When you save a case from your analysis results, it will appear
-              here for easy access
+              Your recent searches will appear here
             </p>
             <Link
               href="/search"
