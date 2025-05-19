@@ -1,0 +1,5 @@
+.env
+generated_documents
+venv/
+myenv/
+.DS_Store

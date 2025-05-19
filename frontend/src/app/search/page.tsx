@@ -24,6 +24,7 @@ export default function SearchPage() {
   const [filters, setFilters] = useState<SearchFiltersType>({
     year: "",
     caseType: "",
+    summarization: "",
   });
   const [resetFilters, setResetFilters] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -85,6 +86,7 @@ export default function SearchPage() {
     const filterString = [
       filters.year && `year ${filters.year}`,
       filters.caseType && `casetype ${filters.caseType}`,
+      filters.summarization && `summarization ${filters.summarization}`,
     ]
       .filter(Boolean)
       .join(", ");
@@ -176,6 +178,8 @@ export default function SearchPage() {
           message: "Document parsed successfully",
           type: "success",
         });
+        // Redirect to upload/response page
+        router.push("/upload/response");
       } else {
         setToast({
           message: data.error || "Failed to parse document",

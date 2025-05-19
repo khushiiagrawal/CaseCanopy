@@ -1,0 +1,36 @@
+To,
+{{ authority_designation }}
+{{ authority_name }}
+{{ authority_address }}
+
+Subject: {{ complaint_subject }}
+
+Respected Sir/Madam,
+
+I, {{ user_name }}, resident of {{ location }}, wish to file a formal complaint against {{ respondent_name }} regarding the following matter:
+
+FACTS OF THE CASE:
+
+{{ issue_summary }}
+
+LEGAL BASIS:
+
+{{ legal_insights }}
+
+PRAYERS:
+
+In light of the above, I most respectfully pray that:
+
+{{ prayers|join('\n') }}
+
+DOCUMENTS ENCLOSED:
+{{ documents|join('\n') }}
+
+I hereby declare that the information provided above is true to the best of my knowledge and belief.
+
+Date: {{ date }}
+Place: {{ location }}
+
+Yours faithfully,
+{{ user_name }}
+{{ contact_details }}

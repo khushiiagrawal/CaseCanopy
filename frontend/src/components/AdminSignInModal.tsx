@@ -50,11 +50,10 @@ export default function AdminSignInModal({ onClose }: AdminSignInModalProps) {
         throw new Error("Invalid response format");
       }
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("adminToken", data.token);
+      localStorage.setItem("adminUser", JSON.stringify(data.user));
 
-      router.refresh();
-      onClose();
+      router.push("/admin");
     } catch (err) {
       console.error("Login error:", err);
       setError(err instanceof Error ? err.message : "An error occurred");

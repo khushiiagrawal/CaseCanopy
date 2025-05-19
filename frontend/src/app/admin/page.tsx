@@ -24,36 +24,40 @@ export default function AdminDashboard() {
   }>({});
   const router = useRouter();
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const userStr = localStorage.getItem("user");
+  const handleLogout = () => {
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminUser");
+    router.push("/admin/login");
+  };
 
-    if (!token || !userStr) {
-      setShowSignInModal(true);
-      setLoading(false);
+  useEffect(() => {
+    const adminToken = localStorage.getItem("adminToken");
+    const adminUser = localStorage.getItem("adminUser");
+
+    if (!adminToken || !adminUser) {
+      router.push("/admin/login");
       return;
     }
 
     try {
-      const userData = JSON.parse(userStr);
+      const userData = JSON.parse(adminUser);
       if (userData.role !== "admin") {
-        router.push("/");
+        router.push("/admin/login");
         return;
       }
 
       fetchLegalUsers();
     } catch (err) {
       console.error("Error parsing user data:", err);
-      setShowSignInModal(true);
-      setLoading(false);
+      router.push("/admin/login");
     }
-  }, []);
+  }, [router]);
 
   const fetchLegalUsers = async () => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setShowSignInModal(true);
+      const adminToken = localStorage.getItem("adminToken");
+      if (!adminToken) {
+        router.push("/admin/login");
         return;
       }
 
@@ -62,7 +66,7 @@ export default function AdminDashboard() {
         "http://localhost:8000/api/admin/users/legal",
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${adminToken}`,
             "Content-Type": "application/json",
           },
         }
@@ -70,7 +74,7 @@ export default function AdminDashboard() {
 
       if (!response.ok) {
         if (response.status === 401) {
-          setShowSignInModal(true);
+          router.push("/admin/login");
           return;
         }
         const errorData = await response.json();
@@ -99,8 +103,8 @@ export default function AdminDashboard() {
   const handleApprove = async (userEmail: string) => {
     try {
       setApprovingUsers((prev) => ({ ...prev, [userEmail]: true }));
-      const token = localStorage.getItem("token");
-      if (!token) {
+      const adminToken = localStorage.getItem("adminToken");
+      if (!adminToken) {
         setShowSignInModal(true);
         return;
       }
@@ -110,7 +114,7 @@ export default function AdminDashboard() {
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${adminToken}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ email: userEmail }),
@@ -151,11 +155,19 @@ export default function AdminDashboard() {
       <main className="flex-1 flex flex-col items-center justify-start pt-24 pb-10 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-5xl bg-[#232C47] shadow-lg rounded-xl p-6 sm:p-8">
           <div className="flex flex-col items-center mb-8">
-            <div className="flex items-center space-x-3 mb-4">
+            <div className="flex items-center justify-between w-full mb-4">
+              <div className="flex items-center space-x-3">
               <span className="text-white text-2xl">🛡️</span>
               <span className="text-white text-2xl font-semibold tracking-wide">
                 CaseCanopy
               </span>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-colors duration-200"
+              >
+                Logout
+              </button>
             </div>
             <h1 className="text-3xl font-bold text-white">
               Legal User Approvals

@@ -115,7 +115,7 @@ export default function ResponsePage() {
         query: response.saved_query,
         analysis: response.langchain_response,
         date: new Date().toISOString(),
-        sourcesCount: response.source_documents.length,
+        sourcesCount: response.source_documents?.length || 0,
       };
 
       savedCases.push(caseToSave);

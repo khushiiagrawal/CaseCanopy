@@ -1,0 +1,62 @@
+IN THE HIGH COURT OF {{ location }} AT {{ location }}
+
+PUBLIC INTEREST LITIGATION (PIL) NO. _____ OF {{ year }}
+
+In the matter of:
+
+{{ user_name }}
+{{ user_address }}
+
+Petitioner
+
+Versus
+
+{{ respondents|join('\n') }}
+
+Respondents
+
+PETITION UNDER ARTICLE 226 OF THE CONSTITUTION OF INDIA
+
+To,
+The Hon'ble Chief Justice and His Companion Justices of the Hon'ble High Court of {{ location }}
+
+Most Respectfully Sheweth:
+
+1. That the Petitioner is a resident of {{ location }} and is filing the present Public Interest Litigation in the interest of {{ petition_purpose }}.
+
+2. That the Petitioner has been compelled to approach this Hon'ble Court due to the inaction of the concerned authorities in addressing the serious issue of {{ issue_description }}.
+
+3. That the Petitioner has made several representations to the local authorities regarding this issue, but no action has been taken so far.
+
+4. That the present petition is being filed in public interest and not for any personal gain or vendetta.
+
+FACTS OF THE CASE:
+
+{{ issue_summary }}
+
+LEGAL BASIS:
+
+{{ legal_insights }}
+
+PRAYERS:
+
+In light of the above, the Petitioner most respectfully prays that this Hon'ble Court may be pleased to:
+
+{{ prayers|join('\n') }}
+
+VERIFICATION:
+
+I, {{ user_name }}, the Petitioner herein, do hereby verify that the contents of this petition have been read over and explained to me in the language I understand, and the same are true to my knowledge, information, and belief, and no part of it is false and nothing material has been concealed therefrom.
+
+Verified at {{ location }} on this _____ day of {{ month }}, {{ year }}.
+
+Solemnly affirmed and signed before me
+
+Notary Public
+
+PLACE: {{ location }}
+DATE: {{ date }}
+
+Through Counsel
+
+Petitioner

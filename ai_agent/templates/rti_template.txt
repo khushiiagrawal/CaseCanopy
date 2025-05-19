@@ -1,0 +1,33 @@
+To,
+The Public Information Officer
+{{ department_name }}
+{{ office_address }}
+{{ location }}
+
+Subject: Request for Information under the Right to Information Act, 2005
+
+Respected Sir/Madam,
+
+I, {{ applicant_name }}, resident of {{ applicant_address }}, hereby submit this application under Section 6(1) of the Right to Information Act, 2005, seeking the following information:
+
+Information Sought:
+
+{{ information_sought }}
+
+Legal Basis:
+This application is made under the Right to Information Act, 2005, which guarantees citizens the right to access information under the control of public authorities. As per Section 6(1) of the Act, I am not required to provide any reason for requesting the information.
+
+{{ legal_basis }}
+
+Additional Information:
+{{ additional_info|join('\n') }}
+
+Please provide the information within 30 days as mandated by the RTI Act, 2005.
+
+Date: {{ date }}
+Place: {{ location }}
+
+Sincerely,
+{{ applicant_name }}
+Contact Number: {{ contact_number }}
+Address: {{ applicant_address }}

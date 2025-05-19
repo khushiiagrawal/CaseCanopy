@@ -11,6 +11,7 @@ interface SearchFiltersProps {
 export interface SearchFilters {
   year: string;
   caseType: string;
+  summarization: string;
 }
 
 // Enhanced case types with more impact
@@ -27,6 +28,15 @@ const enhancedCaseTypes = [
   "Class Action",
 ];
 
+// Summarization options
+const summarizationOptions = [
+  "None",
+  "Brief Summary",
+  "Detailed Summary",
+  "Key Points Only",
+  "Legal Analysis"
+];
+
 export default function SearchFilters({
   onFilterChange,
   horizontal,
@@ -35,6 +45,7 @@ export default function SearchFilters({
   const [filters, setFilters] = useState<SearchFilters>({
     year: "",
     caseType: "",
+    summarization: "",
   });
 
   useEffect(() => {
@@ -42,10 +53,12 @@ export default function SearchFilters({
       setFilters({
         year: "",
         caseType: "",
+        summarization: "",
       });
       onFilterChange({
         year: "",
         caseType: "",
+        summarization: "",
       });
     }
   }, [reset]);
@@ -97,6 +110,23 @@ export default function SearchFilters({
           {enhancedCaseTypes.map((type) => (
             <option key={type} value={type}>
               {type}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className={horizontal ? "w-64" : ""}>
+        <label className="block text-sm font-medium text-white mb-1">
+          Summarization
+        </label>
+        <select
+          value={filters.summarization}
+          onChange={(e) => handleChange("summarization", e.target.value)}
+          className="mt-1 block w-full pl-3 pr-10 py-2 text-sm border border-[#CD9A3C]/30 bg-black/70 text-gray-200 focus:outline-none focus:ring-[#E3B448] focus:border-[#E3B448] rounded-md"
+        >
+          <option value="">No Summarization</option>
+          {summarizationOptions.filter(option => option !== "None").map((option) => (
+            <option key={option} value={option}>
+              {option}
             </option>
           ))}
         </select>
