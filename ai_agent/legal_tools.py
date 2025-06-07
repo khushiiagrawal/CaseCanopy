@@ -46,8 +46,8 @@ class BaseLegalTool(BaseTool):
         super().__init__(**kwargs)
         self.llm = ChatOpenAI(
             temperature=0.3,
-            model_name="gpt-4o-mini",
-            openai_api_key=os.getenv("OPENAI_API_KEY")
+            model="gpt-4o-mini",
+            api_key=os.getenv("OPENAI_API_KEY")
         )
         self.env = Environment(loader=FileSystemLoader("templates"))
         

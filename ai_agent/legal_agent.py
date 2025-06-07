@@ -1,6 +1,7 @@
 from langchain.agents import Tool, AgentExecutor, LLMSingleActionAgent
 from langchain.prompts import StringPromptTemplate
-from langchain_community.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
+
 from langchain.schema import AgentAction, AgentFinish, HumanMessage
 from langchain.chains import LLMChain
 from langchain.agents.output_parsers import ReActSingleInputOutputParser
